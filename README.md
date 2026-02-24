@@ -25,7 +25,7 @@ Loading a raw CAD export into MoveIt or Gazebo with 200 000 triangles kills real
 
 ```bash
 # Clone
-git clone https://github.com/YOUR_USERNAME/ros-mesh-preprocessor.git
+git clone https://github.com/ookkshirsagar/ros-mesh-preprocessor.git
 cd ros-mesh-preprocessor
 
 # Create virtual environment (recommended)

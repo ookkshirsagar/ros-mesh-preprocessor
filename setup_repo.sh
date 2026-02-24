@@ -2,7 +2,7 @@
 # setup_repo.sh — initialise the git repository and push to GitHub
 #
 # Usage (Ubuntu / Git Bash on Windows):
-#   bash setup_repo.sh https://github.com/YOUR_USERNAME/ros-mesh-preprocessor.git
+#   bash setup_repo.sh https://github.com/ookkshirsagar/ros-mesh-preprocessor.git
 
 set -e
 
@@ -21,7 +21,7 @@ if [ -n "$REMOTE_URL" ]; then
 else
   echo ""
   echo "No remote URL provided. To push to GitHub:"
-  echo "  git remote add origin https://github.com/YOUR_USERNAME/ros-mesh-preprocessor.git"
+  echo "  git remote add origin https://github.com/ookkshirsagar/ros-mesh-preprocessor.git"
   echo "  git branch -M main"
   echo "  git push -u origin main"
 fi
