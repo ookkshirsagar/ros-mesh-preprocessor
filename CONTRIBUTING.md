@@ -45,7 +45,7 @@ pip install black flake8       # dev tools
    git checkout -b feat/my-feature
    ```
 
-2. Make your changes. Keep commits focused — one logical change per commit.
+2. Make your changes. Keep commits focused,  one logical change per commit.
 
 3. Run the test suite and make sure everything passes:
    ```bash
@@ -65,7 +65,7 @@ pip install black flake8       # dev tools
 ## Code style
 
 - **Black** for formatting (line length 99)
-- **Flake8** for linting — no unused imports, no bare `except`
+- **Flake8** for linting, no unused imports, no bare `except`
 - Type hints on all public functions
 - Docstrings on all public functions and classes
 

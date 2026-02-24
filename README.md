@@ -2,7 +2,7 @@
 
 > **Geometry preprocessing toolkit for ROS2, MoveIt, and industrial robot cell modelling.**
 
-A focused Python CLI and library that takes high-polygon meshes and turns them into clean, performance-ready assets for robot simulation, motion planning, and URDF authoring — with measurable quality validation built in.
+A focused Python CLI and library that takes high-polygon meshes and turns them into clean, performance-ready assets for robot simulation, motion planning, and URDF authoring with measurable quality validation built in.
 
 ---
 
@@ -128,7 +128,7 @@ Every run can emit a structured JSON report:
 }
 ```
 
-**Hausdorff distance** (in mesh units) quantifies the maximum and average geometric deviation between the original and simplified surface — letting you make an informed decision about how aggressively to decimate without a visual inspection.
+**Hausdorff distance** (in mesh units) quantifies the maximum and average geometric deviation between the original and simplified surface, letting you make an informed decision about how aggressively to decimate without a visual inspection.
 
 ---
 
