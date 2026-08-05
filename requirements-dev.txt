@@ -1,0 +1,9 @@
+# Development dependencies. Install with:
+#   pip install -r requirements.txt -r requirements-dev.txt
+# or equivalently:
+#   pip install -e ".[dev]"
+pytest>=8.0.0
+black>=24.0.0
+flake8>=7.0.0
+pre-commit>=3.6.0
+build>=1.0.0

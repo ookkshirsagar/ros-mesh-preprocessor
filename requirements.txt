@@ -1,0 +1,4 @@
+# Runtime dependencies. Kept for users who prefer `pip install -r requirements.txt`
+# over `pip install .`; see pyproject.toml for the canonical dependency spec.
+open3d>=0.18.0
+numpy>=1.24.0

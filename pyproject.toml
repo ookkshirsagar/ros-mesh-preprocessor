@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ros-mesh-preprocessor"
+dynamic = ["version"]
+description = "Mesh optimization toolkit for ROS2, MoveIt, and digital twins: decimation, URDF export, and geometric validation for robot simulation."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Omkar Chandrakant Kshirsagar" },
+]
+keywords = [
+    "ros2",
+    "moveit",
+    "mesh",
+    "decimation",
+    "urdf",
+    "robotics",
+    "simulation",
+    "collision-mesh",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+dependencies = [
+    "open3d>=0.18.0",
+    "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "black>=24.0.0",
+    "flake8>=7.0.0",
+    "pre-commit>=3.6.0",
+    "build>=1.0.0",
+]
+viz = [
+    "matplotlib>=3.8.0",
+    "pillow>=10.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ookkshirsagar/ros-mesh-preprocessor"
+Repository = "https://github.com/ookkshirsagar/ros-mesh-preprocessor"
+Issues = "https://github.com/ookkshirsagar/ros-mesh-preprocessor/issues"
+Changelog = "https://github.com/ookkshirsagar/ros-mesh-preprocessor/blob/main/CHANGELOG.md"
+
+[project.scripts]
+ros-mesh-preprocessor = "optimizer.cli:main"
+
+[tool.setuptools]
+packages = ["optimizer"]
+
+[tool.setuptools.dynamic]
+version = { attr = "optimizer.__version__" }
+
+[tool.black]
+line-length = 99
+target-version = ["py310", "py311", "py312"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
