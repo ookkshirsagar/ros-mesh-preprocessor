@@ -2,7 +2,7 @@
 #
 #   docker build -t ros-mesh-preprocessor .
 #   docker run --rm -v "$PWD:/work" ros-mesh-preprocessor --input part.stl --output part_small.stl --triangles 5000
-FROM python:3.12-slim
+FROM python:3.15-slim
 
 # Open3D's wheel links against EGL/GL and OpenMP even in headless use.
 RUN apt-get update \
