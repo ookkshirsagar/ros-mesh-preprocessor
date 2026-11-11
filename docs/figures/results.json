@@ -1,0 +1,104 @@
+{
+  "servo_motor": {
+    "name": "AC servo motor",
+    "spec": "NEMA 34 frame, finned body, keyed shaft",
+    "bbox_mm": [
+      205.2,
+      132.9,
+      133.0
+    ],
+    "raw_triangles": 370062,
+    "visual_triangles": 20000,
+    "collision_triangles": 1500,
+    "reduction_percent": 99.59,
+    "simplify_time_sec": 14.072,
+    "hausdorff_max_mm": 2.553,
+    "hausdorff_mean_mm": 0.669,
+    "hausdorff_rms_mm": 0.752
+  },
+  "spur_gear": {
+    "name": "Involute spur gear",
+    "spec": "m3 · z36 · hub, keyway, lightening holes",
+    "bbox_mm": [
+      114.0,
+      34.0,
+      114.0
+    ],
+    "raw_triangles": 418512,
+    "visual_triangles": 20000,
+    "collision_triangles": 3000,
+    "reduction_percent": 99.28,
+    "simplify_time_sec": 6.224,
+    "hausdorff_max_mm": 1.587,
+    "hausdorff_mean_mm": 0.445,
+    "hausdorff_rms_mm": 0.5
+  },
+  "weld_neck_flange": {
+    "name": "Weld-neck flange",
+    "spec": "DN100 PN16 · raised face · 8 bolt holes",
+    "bbox_mm": [
+      207.8,
+      128.2,
+      220.0
+    ],
+    "raw_triangles": 301612,
+    "visual_triangles": 20000,
+    "collision_triangles": 2000,
+    "reduction_percent": 99.34,
+    "simplify_time_sec": 6.307,
+    "hausdorff_max_mm": 2.895,
+    "hausdorff_mean_mm": 0.759,
+    "hausdorff_rms_mm": 0.849
+  },
+  "tslot_extrusion": {
+    "name": "T-slot extrusion",
+    "spec": "40×40 B-type · slot 8 · 160 mm",
+    "bbox_mm": [
+      156.9,
+      118.7,
+      40.0
+    ],
+    "raw_triangles": 673400,
+    "visual_triangles": 20000,
+    "collision_triangles": 1000,
+    "reduction_percent": 99.85,
+    "simplify_time_sec": 14.465,
+    "hausdorff_max_mm": 2.096,
+    "hausdorff_mean_mm": 0.558,
+    "hausdorff_rms_mm": 0.629
+  },
+  "pillow_block": {
+    "name": "Pillow block bearing",
+    "spec": "UCP205 style · Ø25 shaft · slotted base",
+    "bbox_mm": [
+      130.6,
+      77.4,
+      79.7
+    ],
+    "raw_triangles": 245408,
+    "visual_triangles": 20000,
+    "collision_triangles": 2000,
+    "reduction_percent": 99.19,
+    "simplify_time_sec": 6.877,
+    "hausdorff_max_mm": 3.36,
+    "hausdorff_mean_mm": 0.417,
+    "hausdorff_rms_mm": 0.472
+  },
+  "timing_pulley": {
+    "name": "Timing pulley",
+    "spec": "HTD-5M · 40 teeth · flanged, set-screw hub",
+    "bbox_mm": [
+      71.5,
+      46.2,
+      71.5
+    ],
+    "raw_triangles": 765876,
+    "visual_triangles": 20000,
+    "collision_triangles": 2500,
+    "reduction_percent": 99.67,
+    "simplify_time_sec": 11.959,
+    "hausdorff_max_mm": 1.524,
+    "hausdorff_mean_mm": 0.363,
+    "hausdorff_rms_mm": 0.408
+  }
+}

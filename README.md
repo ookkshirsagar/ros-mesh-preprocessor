@@ -12,9 +12,9 @@
 [![Open3D](https://img.shields.io/badge/engine-Open3D-2ea44f)](https://www.open3d.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-<img src="docs/img/hero.png" alt="Robot arm: 227,840-triangle raw CAD export reduced to a 20,000-triangle visual mesh and a 1,500-triangle collision mesh" width="100%">
+<img src="docs/img/hero.png" alt="AC servo motor: 370,062-triangle CAD export reduced to a 20,000-triangle visual mesh and a 1,500-triangle collision mesh" width="100%">
 
-<sub>Real pipeline output on a synthetic 6-axis arm: 99.34% fewer collision triangles at 5.3 mm RMS deviation over a 1.6 m reach. Regenerate with <code>python docs/generate_figures.py</code>.</sub>
+<sub>Real pipeline output on a parametric NEMA 34 servo motor: 99.59% fewer collision triangles at 0.75 mm RMS deviation. Regenerate every figure with <code>python docs/generate_figures.py</code>.</sub>
 
 </div>
 
@@ -75,15 +75,34 @@ If you're doing one-off manual cleanup of a single hero asset, MeshLab is still 
 
 ---
 
-## Quality validation
+## Industrial parts gallery
 
-Decimation always removes geometry; the question is *where*. Below, the raw arm is coloured by its distance to the 1,500-triangle collision mesh. Flat faces (base plate, upper arm, gripper) come through untouched; error concentrates on the curved joint housings and cylinder caps, with every raw vertex within 3.5 mm of the collision surface (median 0.2 mm, p99 1.2 mm; colour scale clipped at p99.5).
-
-The headline Hausdorff max (19.3 mm) comes from the *other* direction: collision-mesh triangles that bridge the seams between joined parts. That is why the report measures both directions, and why you should check the `hausdorff_max` of your own assets before committing to a triangle budget.
+Six parametric components built from catalogue dimensions with real CSG (bores, keyways, bolt circles, involute teeth, T-slots), tessellated as densely as a CAD "fine" STL export, then pushed through the exact `clean_mesh → simplify_mesh → hausdorff_distance` path the CLI runs. Each tile is a split view: CAD render on the left, the collision mesh with every triangle drawn on the right.
 
 <p align="center">
-  <img src="docs/img/hausdorff_heatmap.png" alt="Raw robot arm coloured by per-vertex deviation from its collision mesh" width="75%">
+  <img src="docs/img/gallery.png" alt="3x2 grid of industrial components (servo motor, spur gear, weld-neck flange, T-slot extrusion, pillow block bearing, timing pulley), each split between CAD render and decimated collision mesh, with reduction and Hausdorff metrics" width="100%">
 </p>
+
+| Component | Spec | CAD triangles | Collision triangles | Reduction | Hausdorff RMS | Hausdorff max |
+|---|---|---:|---:|---:|---:|---:|
+| AC servo motor | NEMA 34 frame, finned body, keyed shaft | 370,062 | 1,500 | 99.59% | 0.75 mm | 2.55 mm |
+| Involute spur gear | m3 · z36 · hub, keyway, lightening holes | 418,512 | 3,000 | 99.28% | 0.50 mm | 1.59 mm |
+| Weld-neck flange | DN100 PN16 · raised face · 8 bolt holes | 301,612 | 2,000 | 99.34% | 0.85 mm | 2.90 mm |
+| T-slot extrusion | 40×40 B-type · slot 8 · 160 mm | 673,400 | 1,000 | 99.85% | 0.63 mm | 2.10 mm |
+| Pillow block bearing | UCP205 style · Ø25 shaft · slotted base | 245,408 | 2,000 | 99.19% | 0.47 mm | 3.36 mm |
+| Timing pulley | HTD-5M · 40 teeth · flanged, set-screw hub | 765,876 | 2,500 | 99.67% | 0.41 mm | 1.52 mm |
+
+<sub>Raw numbers: <a href="docs/figures/results.json"><code>docs/figures/results.json</code></a>. Part geometry: <a href="docs/figures/parts.py"><code>docs/figures/parts.py</code></a>. Hausdorff values are sampled (50k points per surface), so they vary slightly between runs.</sub>
+
+### Where did the geometry go?
+
+Decimation always removes geometry; the question is *where*. Below, each CAD surface is coloured by its distance to its collision mesh. Planar faces come through untouched (per-part median deviation 0.00 to 0.07 mm); what error there is sits on curved surfaces such as the flange bore and the bearing housing.
+
+<p align="center">
+  <img src="docs/img/hausdorff_heatmap.png" alt="Spur gear, weld-neck flange and pillow block coloured by per-vertex deviation from their collision meshes" width="100%">
+</p>
+
+The heatmap measures one direction (CAD → collision). The symmetric Hausdorff max in the table also measures collision → CAD, which catches collision triangles that cut across concave features. Check both before you commit to a triangle budget.
 
 ---
 
@@ -108,6 +127,14 @@ pre-commit install
 ```
 
 If you'd rather not install the package, `python -m optimizer.cli` still works and takes the same arguments.
+
+### Regenerating the figures
+
+```bash
+pip install -e ".[viz]"
+sudo apt install libegl1 libgl1-mesa-dri   # headless OpenGL; no GPU needed
+python docs/generate_figures.py            # ~3 min on a laptop CPU
+```
 
 ### Docker
 
@@ -322,7 +349,11 @@ ros-mesh-preprocessor/
 │
 ├── docs/
 │   ├── generate_figures.py  # regenerates every README figure from real pipeline output
-│   └── img/                 # hero.png, pipeline.svg, hausdorff_heatmap.png, benchmark_tradeoff.png
+│   ├── figures/
+│   │   ├── parts.py         # parametric industrial components (CSG via trimesh + manifold3d)
+│   │   ├── render.py        # headless pyrender/EGL studio renderer
+│   │   └── results.json     # every number shown in the figures
+│   └── img/                 # hero, gallery, heatmap, benchmark plots, pipeline.svg
 │
 ├── tests/
 │   ├── test_core.py         # load/save, simplify, malformed-input, regression tests

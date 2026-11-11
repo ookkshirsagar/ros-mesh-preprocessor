@@ -29,9 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`benchmarks/generate_report.py`, `docs/generate_figures.py`).
 
 - README figures generated from real pipeline output by
-  `docs/generate_figures.py`: robot-arm raw/visual/collision hero image,
-  per-vertex deviation heatmap, and benchmark trade-off plots, plus a
-  pipeline architecture diagram (`docs/img/pipeline.svg`).
+  `docs/generate_figures.py`: six parametric industrial components
+  (servo motor, involute spur gear, weld-neck flange, T-slot extrusion,
+  pillow block bearing, timing pulley) built with CSG in
+  `docs/figures/parts.py`, rendered headlessly with pyrender/EGL into a
+  CAD -> visual -> collision hero, a split-view gallery grid, a deviation
+  heatmap and benchmark plots; per-part metrics in
+  `docs/figures/results.json`. Plus a pipeline diagram
+  (`docs/img/pipeline.svg`).
 - `Dockerfile` for running the CLI without a local Open3D/OpenGL setup, built
   in CI.
 - Issue forms, pull request template, Dependabot config, and `CITATION.cff`.
