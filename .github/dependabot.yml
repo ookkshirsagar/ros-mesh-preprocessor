@@ -12,3 +12,7 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # Open3D publishes no wheels for Python 3.13+ yet; keep the image on 3.12.
+      - dependency-name: python
+        versions: [">=3.13"]
