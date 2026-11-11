@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-11
+
 ### Added
+- Whole-robot mode: `--urdf robot.urdf --output DIR --collision N [--visual N]`
+  (`optimizer/urdf_robot.py`) optimizes every mesh a URDF references and
+  writes a rewritten URDF plus `urdf_report.json`. Resolves `package://`
+  (next to the URDF, via `AMENT_PREFIX_PATH`, or `--package-path NAME=DIR`),
+  `file://` and relative URIs; processes shared meshes once; copies meshes
+  already under budget; leaves visuals untouched unless `--visual` is given;
+  skips formats open3d cannot read; passes every non-mesh element and comment
+  through; rejects unexpanded xacro. `--mesh-uri-prefix` sets the rewritten
+  URIs, e.g. `package://my_robot_description/meshes_optimized`.
+- Release workflow (`.github/workflows/release.yml`): pushing a `v*.*.*` tag
+  runs the tests, checks the tag matches `optimizer.__version__`, builds,
+  publishes to PyPI via Trusted Publishing, and creates a GitHub Release
+  with the changelog notes. README links are made absolute for the PyPI page.
+  See `RELEASING.md`.
 - `pyproject.toml` packaging: install with `pip install .` and run the
   `ros-mesh-preprocessor` command directly instead of `python -m optimizer.cli`.
 - `--version`, `--dry-run`, `-v/--verbose`, and `--format` CLI flags.
@@ -65,6 +81,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Status output now goes through Python's `logging` module instead of bare
   `print`, so verbosity is controllable with `-v`.
+- Package metadata uses an SPDX license expression (`license = "MIT"`),
+  replacing the deprecated license table and classifier.
 
 ## [0.1.0] - 2026-02-24
 
@@ -72,3 +90,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release: QEM mesh decimation, visual/collision URDF pair export,
   Hausdorff-distance validation, batch folder processing, and JSON benchmark
   reports.
+
+[Unreleased]: https://github.com/ookkshirsagar/ros-mesh-preprocessor/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ookkshirsagar/ros-mesh-preprocessor/releases/tag/v0.2.0

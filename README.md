@@ -24,6 +24,7 @@
 
 ## Highlights
 
+- **Whole robot in one command.** `--urdf robot.urdf` optimizes every mesh the URDF references and writes a rewritten URDF that points at them.
 - **One command → URDF-ready pair.** `_visual.stl` + `_collision.stl` + a drop-in `<link>` snippet.
 - **Measured, not eyeballed.** Symmetric Hausdorff deviation (max / mean / RMS) for every output.
 - **CI-gateable.** A static MoveIt load check exits non-zero when a mesh is missing, empty, or over the collision triangle budget.
@@ -41,10 +42,13 @@
 ```bash
 git clone https://github.com/ookkshirsagar/ros-mesh-preprocessor.git && cd ros-mesh-preprocessor
 pip install -e .
-ros-mesh-preprocessor --input your_mesh.stl --output your_mesh_small.obj --triangles 5000
-```
 
-That's it: no `python -m`, no manual `sys.path` juggling. Three commands, one clean mesh.
+# one mesh
+ros-mesh-preprocessor --input your_mesh.stl --output your_mesh_small.obj --triangles 5000
+
+# a whole robot: every collision mesh in the URDF, URDF rewritten to match
+ros-mesh-preprocessor --urdf my_robot.urdf --output ./optimized --collision 2000
+```
 
 ---
 
@@ -118,6 +122,8 @@ venv\Scripts\activate           # Windows PowerShell
 
 pip install -e .                # installs the `ros-mesh-preprocessor` command
 ```
+
+> **Python version:** 3.10 to 3.12. Open3D does not publish wheels for Python 3.13 yet, so `pip install` fails there with a "no matching distribution" error for `open3d`. Use a 3.12 virtual environment (`python3.12 -m venv venv`) or the Docker image.
 
 For development (tests, linting, pre-commit):
 
@@ -232,6 +238,50 @@ ros-mesh-preprocessor \
 
 Processes every STL / OBJ / PLY / OFF / GLB in the folder and saves a combined `batch_report.json`.
 
+### Whole robot: every mesh in a URDF
+
+```bash
+ros-mesh-preprocessor \
+  --urdf my_robot_description/urdf/my_robot.urdf \
+  --output ./my_robot_optimized \
+  --collision 2000 \
+  --mesh-uri-prefix package://my_robot_description/meshes_optimized
+```
+
+Reads the URDF, resolves every `<visual>` / `<collision>` `<mesh filename="...">` (`package://`, `file://` or relative paths), decimates each unique mesh once, and writes:
+
+```
+my_robot_optimized/
+├── my_robot.urdf              ← same robot, mesh URIs rewritten
+├── meshes/collision/*.stl     ← each within the --collision budget
+├── meshes/visual/*.stl        ← only if you pass --visual N
+└── urdf_report.json           ← per-mesh triangles, timing, Hausdorff deviation
+```
+
+- **Only meshes are touched.** Joints, inertials, materials, primitive shapes, comments and `<ros2_control>` / `<gazebo>` tags pass through unchanged.
+- **Visual meshes are left alone by default**, because they usually carry colours and materials (`.dae`). Pass `--visual N` to decimate them too.
+- **Shared meshes are processed once**, and meshes already under budget are copied without decimation.
+- **Formats Open3D can't read** (e.g. COLLADA `.dae`) are skipped, keep their original URI, and are reported as skipped.
+- **Package lookup.** `package://` names are found next to the URDF, through `AMENT_PREFIX_PATH` (a sourced ROS 2 workspace), or with `--package-path NAME=DIR`.
+- **xacro.** Expand first: `xacro robot.urdf.xacro > robot.urdf`.
+- **Dry run.** `--dry-run` prints the plan without writing anything.
+
+Real run on the Universal Robots **UR5e**, using the vendor's own visual geometry as collision meshes (the way many CAD-exported robots ship). The meshes come from [Universal_Robots_ROS2_Description](https://github.com/UniversalRobots/Universal_Robots_ROS2_Description), BSD-3-Clause, with `.dae` converted to STL:
+
+```
+  role      mesh                                 triangles   dev RMS  status
+  collision base.stl                        4,838 -> 1,499  1.53e-03  simplified
+  collision shoulder.stl                   23,290 -> 1,500  1.59e-03  simplified
+  collision upperarm.stl                   40,124 -> 1,500  2.67e-03  simplified
+  collision forearm.stl                    15,058 -> 1,500  2.06e-03  simplified
+  collision wrist1.stl                     17,288 -> 1,500  1.14e-03  simplified
+  collision wrist2.stl                     20,280 -> 1,499  1.07e-03  simplified
+  collision wrist3.stl                          911 -> 911         -  copied
+  Total collision: 121,789 -> 9,909 triangles (91.9% fewer)
+```
+
+All seven links finish in under 2 s on a laptop CPU, at 1 to 3 mm RMS deviation (mesh units are metres). For scale, Universal Robots' hand-made collision meshes for the same arm total 7,558 triangles.
+
 ### Explicit format override
 
 ```bash
@@ -336,6 +386,7 @@ ros-mesh-preprocessor/
 │   ├── core.py           # Load, clean, simplify, save
 │   ├── metrics.py        # Hausdorff distance + benchmark report
 │   ├── urdf_export.py    # Visual/collision pair + URDF snippet
+│   ├── urdf_robot.py     # Whole-robot mode: optimize every mesh in a URDF, rewrite URIs
 │   ├── moveit_check.py   # Static URDF/mesh validation ("would this load in MoveIt?")
 │   └── cli.py            # argparse CLI, packaged as the `ros-mesh-preprocessor` command
 │
@@ -363,10 +414,12 @@ ros-mesh-preprocessor/
 │
 ├── .github/
 │   ├── workflows/ci.yml     # lint, test matrix (3.10-3.12), packaging build, Docker build
+│   ├── workflows/release.yml # tag v*.*.* → test, build, PyPI (trusted publishing), GitHub Release
 │   ├── ISSUE_TEMPLATE/      # bug report + feature request forms
 │   ├── pull_request_template.md
 │   └── dependabot.yml
 ├── Dockerfile               # containerised CLI for CI pipelines
+├── RELEASING.md             # how to cut a release (tag → PyPI + GitHub Release)
 ├── CITATION.cff
 ├── .pre-commit-config.yaml
 ├── pyproject.toml           # packaging + console_scripts entry point
@@ -386,7 +439,7 @@ pip install -e ".[dev]"
 pytest tests/ -v
 ```
 
-49 tests covering mesh load/save round-trips across all supported formats, malformed/missing input handling, triangle-count reduction regression bounds, URDF export correctness, MoveIt load-check logic, and CLI exit codes.
+72 tests covering mesh load/save round-trips across all supported formats, malformed/missing input handling, triangle-count reduction regression bounds, URDF export correctness, whole-robot URDF mode (`package://` / `file://` / relative URI resolution, shared meshes, pass-through of non-mesh tags, xacro rejection), MoveIt load-check logic, and CLI exit codes.
 
 ---
 
@@ -406,11 +459,15 @@ Format conversion is free: specify a different extension on `--output`, or force
 
 ## Roadmap
 
+- [x] Whole-robot URDF mode (`--urdf`)
+- [ ] COLLADA (`.dae`) input for visual meshes
+- [ ] Convex decomposition collision mode (CoACD / V-HACD)
+- [ ] MJCF (MuJoCo) and SDF (Gazebo) export
 - [ ] Voxel-based simplification mode (alternative to QEM)
 - [ ] ROS2 launch file integration example
 - [ ] Planning time benchmark (MoveIt before/after comparison)
 - [x] Dockerfile for containerized CI runs
-- [ ] Tagged releases with prebuilt artifacts
+- [x] Tagged releases published to PyPI (see [RELEASING.md](RELEASING.md))
 
 ---
 

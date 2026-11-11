@@ -12,6 +12,9 @@ URDF pair (visual + collision):
 Batch (folder):
     ros-mesh-preprocessor --folder ./cell_assets --output ./output --collision 5000
 
+Whole robot (every mesh in a URDF, URIs rewritten):
+    ros-mesh-preprocessor --urdf my_robot.urdf --output ./optimized --collision 3000
+
 Exit codes:
     0  success
     1  a known, reported error (bad input, bad mesh, bad arguments combination
@@ -37,6 +40,7 @@ from optimizer.core import (
 )
 from optimizer.metrics import build_report, print_report, save_report
 from optimizer.urdf_export import export_urdf_pair
+from optimizer.urdf_robot import UrdfError, optimize_urdf, print_urdf_summary
 
 log = logging.getLogger("optimizer")
 
@@ -172,6 +176,42 @@ def _process_batch(args: argparse.Namespace) -> None:
         raise CliError(f"All {failures} file(s) in the batch failed to process.")
 
 
+def _parse_package_paths(entries: list[str] | None) -> dict[str, str]:
+    paths = {}
+    for entry in entries or []:
+        name, sep, path = entry.partition("=")
+        if not sep or not name or not path:
+            raise CliError(f"--package-path expects NAME=DIR, got '{entry}'.")
+        paths[name] = path
+    return paths
+
+
+def _process_robot_urdf(args: argparse.Namespace) -> None:
+    if args.collision is None:
+        raise CliError("--urdf requires --collision (per-mesh collision triangle budget).")
+    if args.output is None:
+        raise CliError("--urdf requires --output (directory for the rewritten URDF + meshes).")
+    try:
+        summary = optimize_urdf(
+            args.urdf,
+            args.output,
+            collision_triangles=args.collision,
+            visual_triangles=args.visual,
+            package_paths=_parse_package_paths(args.package_path),
+            mesh_uri_prefix=args.mesh_uri_prefix,
+            compute_hausdorff=not args.skip_hausdorff,
+            dry_run=args.dry_run,
+        )
+    except UrdfError as exc:
+        raise CliError(str(exc)) from exc
+    print_urdf_summary(summary, dry_run=args.dry_run)
+    if not args.dry_run and not args.mesh_uri_prefix:
+        log.info(
+            "Mesh URIs are relative to the output URDF. For RViz / MoveIt, install the output "
+            "into a package and pass --mesh-uri-prefix package://<pkg>/<dir>."
+        )
+
+
 # ---------------------------------------------------------------------------
 # Parser
 # ---------------------------------------------------------------------------
@@ -204,6 +244,10 @@ Examples:
   ros-mesh-preprocessor --folder ./cell_assets --output ./optimized \\
       --collision 5000 --format obj
 
+  # Optimize every mesh in a robot description, rewriting the URDF to match
+  ros-mesh-preprocessor --urdf ur5e.urdf --output ./ur5e_optimized --collision 2000 \\
+      --mesh-uri-prefix package://ur5e_description/meshes_optimized
+
   # Verbose logging for debugging a large batch job
   ros-mesh-preprocessor --folder ./cell_assets --collision 5000 -v
 """,
@@ -215,6 +259,12 @@ Examples:
     input_group = p.add_mutually_exclusive_group(required=True)
     input_group.add_argument("--input", metavar="FILE", help="Single input mesh file.")
     input_group.add_argument("--folder", metavar="DIR", help="Folder of mesh files (batch mode).")
+    input_group.add_argument(
+        "--urdf",
+        metavar="FILE",
+        help="Robot URDF: optimize every mesh it references and write a rewritten copy "
+        "(robot mode). Requires --output DIR and --collision N; --visual N is optional.",
+    )
 
     # --- Output ---
     p.add_argument(
@@ -245,13 +295,33 @@ Examples:
 
     # --- URDF pair sizes ---
     p.add_argument(
-        "--visual", type=int, metavar="N", help="Triangle count for visual mesh (URDF mode)."
+        "--visual",
+        type=int,
+        metavar="N",
+        help="Triangle count for visual mesh (URDF pair mode; optional per-mesh budget in "
+        "robot mode).",
     )
     p.add_argument(
         "--collision",
         type=int,
         metavar="N",
-        help="Triangle count for collision mesh (URDF / batch mode).",
+        help="Triangle count for collision mesh (URDF pair / batch mode; per-mesh budget "
+        "in robot mode).",
+    )
+
+    # --- Robot (URDF) mode ---
+    p.add_argument(
+        "--package-path",
+        action="append",
+        metavar="NAME=DIR",
+        help="Where to find a ROS package referenced as package://NAME/... (repeatable). "
+        "Otherwise found next to the URDF or via AMENT_PREFIX_PATH.",
+    )
+    p.add_argument(
+        "--mesh-uri-prefix",
+        metavar="URI",
+        help="Prefix for rewritten mesh URIs in robot mode, e.g. "
+        "package://my_robot_description/meshes_optimized (default: relative paths).",
     )
 
     # --- Extras ---
@@ -308,6 +378,9 @@ def main() -> None:
             if args.collision and args.triangles is None and args.reduction is None:
                 args.triangles = args.collision
             _process_batch(args)
+
+        elif args.urdf:
+            _process_robot_urdf(args)
 
         elif args.urdf_output:
             _process_urdf(args)
