@@ -1,12 +1,38 @@
+<div align="center">
+
 # ros-mesh-preprocessor
 
-**Mesh optimization toolkit for ROS2, MoveIt, and digital twins.**
+**Turn heavy CAD exports into real-time-ready visual & collision meshes for ROS 2, MoveIt and Gazebo.**
 
 [![CI](https://github.com/ookkshirsagar/ros-mesh-preprocessor/actions/workflows/ci.yml/badge.svg)](https://github.com/ookkshirsagar/ros-mesh-preprocessor/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![ROS 2](https://img.shields.io/badge/ROS%202-URDF%20assets-22314E?logo=ros)](https://docs.ros.org/)
+[![MoveIt](https://img.shields.io/badge/MoveIt-2-1f6feb)](https://moveit.ros.org/)
+[![Open3D](https://img.shields.io/badge/engine-Open3D-2ea44f)](https://www.open3d.org/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+<img src="docs/img/hero.png" alt="Robot arm: 227,840-triangle raw CAD export reduced to a 20,000-triangle visual mesh and a 1,500-triangle collision mesh" width="100%">
+
+<sub>Real pipeline output on a synthetic 6-axis arm: 99.34% fewer collision triangles at 5.3 mm RMS deviation over a 1.6 m reach. Regenerate with <code>python docs/generate_figures.py</code>.</sub>
+
+</div>
 
 > A 200,000-triangle CAD export dropped straight into Gazebo or MoveIt kills real-time planning. This CLI turns raw meshes into clean, decimated, quality-validated visual and collision assets, with a JSON report proving how much was lost.
+
+---
+
+## Highlights
+
+- **One command → URDF-ready pair.** `_visual.stl` + `_collision.stl` + a drop-in `<link>` snippet.
+- **Measured, not eyeballed.** Symmetric Hausdorff deviation (max / mean / RMS) for every output.
+- **CI-gateable.** A static MoveIt load check exits non-zero when a mesh is missing, empty, or over the collision triangle budget.
+- **Batch mode.** Process a whole robot cell folder with identical parameters, every run.
+- **No ROS install required** to preprocess or validate; drop the outputs into any `*_description` package.
+
+<p align="center">
+  <img src="docs/img/pipeline.svg" alt="Pipeline: raw mesh, clean, QEM decimation, visual and collision meshes, URDF, MoveIt load check, with metrics report" width="100%">
+</p>
 
 ---
 
@@ -49,11 +75,15 @@ If you're doing one-off manual cleanup of a single hero asset, MeshLab is still 
 
 ---
 
-## Before / after
+## Quality validation
 
-Real output from `simplify_mesh()`, a 7,200-triangle torus decimated to 250 triangles (reproduce with `python docs/generate_before_after.py`, requires `pip install -e ".[viz]"`):
+Decimation always removes geometry; the question is *where*. Below, the raw arm is coloured by its distance to the 1,500-triangle collision mesh. Flat faces (base plate, upper arm, gripper) come through untouched; error concentrates on the curved joint housings and cylinder caps, with every raw vertex within 3.5 mm of the collision surface (median 0.2 mm, p99 1.2 mm; colour scale clipped at p99.5).
 
-![Before and after mesh decimation](docs/img/before_after.png)
+The headline Hausdorff max (19.3 mm) comes from the *other* direction: collision-mesh triangles that bridge the seams between joined parts. That is why the report measures both directions, and why you should check the `hausdorff_max` of your own assets before committing to a triangle budget.
+
+<p align="center">
+  <img src="docs/img/hausdorff_heatmap.png" alt="Raw robot arm coloured by per-vertex deviation from its collision mesh" width="75%">
+</p>
 
 ---
 
@@ -78,6 +108,16 @@ pre-commit install
 ```
 
 If you'd rather not install the package, `python -m optimizer.cli` still works and takes the same arguments.
+
+### Docker
+
+No local Open3D / OpenGL setup needed: mount your meshes and run the same CLI in a container.
+
+```bash
+docker build -t ros-mesh-preprocessor .
+docker run --rm -v "$PWD:/work" ros-mesh-preprocessor \
+  --input robot_cell.stl --urdf-output ./output --visual 20000 --collision 3000
+```
 
 ---
 
@@ -253,6 +293,8 @@ Real numbers from `benchmarks/generate_report.py`, decimating a 389,120-triangle
 | 1,000  | 99.74% | 18.6 MB → 0.05 MB | 4.05 s | 0.0284 | 0.0100 |
 | 500    | 99.87% | 18.6 MB → 0.02 MB | 4.92 s | 0.0338 | 0.0109 |
 
+![Benchmark plots: Hausdorff deviation, output file size and wall time per target triangle count](docs/img/benchmark_tradeoff.png)
+
 Hausdorff deviation stays essentially flat across two orders of magnitude of reduction on this mesh, a sign the QEM decimation is preserving overall shape well even at aggressive reduction levels, though the right target for your own geometry should still be picked using its own Hausdorff numbers, not this table.
 
 ---
@@ -279,8 +321,8 @@ ros-mesh-preprocessor/
 │   └── performance_results.json
 │
 ├── docs/
-│   ├── generate_before_after.py # regenerates the before/after image
-│   └── img/before_after.png
+│   ├── generate_figures.py  # regenerates every README figure from real pipeline output
+│   └── img/                 # hero.png, pipeline.svg, hausdorff_heatmap.png, benchmark_tradeoff.png
 │
 ├── tests/
 │   ├── test_core.py         # load/save, simplify, malformed-input, regression tests
@@ -288,7 +330,13 @@ ros-mesh-preprocessor/
 │   ├── test_moveit_check.py
 │   └── test_cli.py          # exit codes, dry-run behaviour
 │
-├── .github/workflows/ci.yml # lint, test matrix (3.10-3.12), packaging build
+├── .github/
+│   ├── workflows/ci.yml     # lint, test matrix (3.10-3.12), packaging build, Docker build
+│   ├── ISSUE_TEMPLATE/      # bug report + feature request forms
+│   ├── pull_request_template.md
+│   └── dependabot.yml
+├── Dockerfile               # containerised CLI for CI pipelines
+├── CITATION.cff
 ├── .pre-commit-config.yaml
 ├── pyproject.toml           # packaging + console_scripts entry point
 ├── requirements.txt
@@ -330,7 +378,7 @@ Format conversion is free: specify a different extension on `--output`, or force
 - [ ] Voxel-based simplification mode (alternative to QEM)
 - [ ] ROS2 launch file integration example
 - [ ] Planning time benchmark (MoveIt before/after comparison)
-- [ ] Dockerfile for containerized CI runs
+- [x] Dockerfile for containerized CI runs
 - [ ] Tagged releases with prebuilt artifacts
 
 ---
@@ -349,6 +397,12 @@ flake8 optimizer/ tests/    # lint
 ```
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
+
+---
+
+## Citation
+
+If this tool is useful in your research or product, please cite it via [`CITATION.cff`](CITATION.cff) (GitHub's "Cite this repository" button).
 
 ---
 

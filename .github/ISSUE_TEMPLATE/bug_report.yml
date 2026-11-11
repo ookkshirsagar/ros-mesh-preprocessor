@@ -1,0 +1,38 @@
+name: Bug report
+description: A mesh failed to load, simplify, export, or pass the MoveIt load check.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact command you ran.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output / traceback
+      render: text
+  - type: input
+    id: mesh
+    attributes:
+      label: Mesh details
+      description: Format and approximate triangle count (e.g. "STL, ~400k triangles, exported from SolidWorks").
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Python version, `ros-mesh-preprocessor --version`, `python -c "import open3d; print(open3d.__version__)"`.
+    validations:
+      required: true

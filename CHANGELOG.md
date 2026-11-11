@@ -26,7 +26,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   within a triangle budget), wired into `examples/moveit_cell_demo` as a
   final pipeline step.
 - Reproducible benchmark and before/after-visual generators
-  (`benchmarks/generate_report.py`, `docs/generate_before_after.py`).
+  (`benchmarks/generate_report.py`, `docs/generate_figures.py`).
+
+- README figures generated from real pipeline output by
+  `docs/generate_figures.py`: robot-arm raw/visual/collision hero image,
+  per-vertex deviation heatmap, and benchmark trade-off plots, plus a
+  pipeline architecture diagram (`docs/img/pipeline.svg`).
+- `Dockerfile` for running the CLI without a local Open3D/OpenGL setup, built
+  in CI.
+- Issue forms, pull request template, Dependabot config, and `CITATION.cff`.
+
+### Removed
+- `setup_repo.sh` (one-off bootstrap script) and the torus-only
+  `docs/generate_before_after.py`, superseded by `docs/generate_figures.py`.
 
 ### Fixed
 - `simplify_mesh` called `TriangleMesh.simplify_quadric_error_metrics`, which

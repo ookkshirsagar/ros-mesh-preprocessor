@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software in your research or product, please cite it as below."
+title: "ros-mesh-preprocessor: mesh optimization toolkit for ROS 2, MoveIt, and digital twins"
+type: software
+authors:
+  - given-names: Omkar Chandrakant
+    family-names: Kshirsagar
+repository-code: "https://github.com/ookkshirsagar/ros-mesh-preprocessor"
+license: MIT
+keywords:
+  - ros2
+  - moveit
+  - urdf
+  - mesh decimation
+  - collision mesh
+  - robotics
