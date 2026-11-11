@@ -2,243 +2,93 @@
 
 # ros-mesh-preprocessor
 
-**Turn heavy CAD exports into real-time-ready visual & collision meshes for ROS 2, MoveIt and Gazebo.**
+**Turn heavy CAD exports into real-time-ready visual and collision meshes for ROS 2, MoveIt and Gazebo.**
 
 [![CI](https://github.com/ookkshirsagar/ros-mesh-preprocessor/actions/workflows/ci.yml/badge.svg)](https://github.com/ookkshirsagar/ros-mesh-preprocessor/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![Python 3.10 to 3.12](https://img.shields.io/badge/python-3.10%20to%203.12-blue.svg)](pyproject.toml)
 [![ROS 2](https://img.shields.io/badge/ROS%202-URDF%20assets-22314E?logo=ros)](https://docs.ros.org/)
-[![MoveIt](https://img.shields.io/badge/MoveIt-2-1f6feb)](https://moveit.ros.org/)
-[![Open3D](https://img.shields.io/badge/engine-Open3D-2ea44f)](https://www.open3d.org/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 <img src="docs/img/hero.png" alt="AC servo motor: 370,062-triangle CAD export reduced to a 20,000-triangle visual mesh and a 1,500-triangle collision mesh" width="100%">
 
-<sub>Real pipeline output on a parametric NEMA 34 servo motor: 99.59% fewer collision triangles at 0.75 mm RMS deviation. Regenerate every figure with <code>python docs/generate_figures.py</code>.</sub>
-
 </div>
 
-> A 200,000-triangle CAD export dropped straight into Gazebo or MoveIt kills real-time planning. This CLI turns raw meshes into clean, decimated, quality-validated visual and collision assets, with a JSON report proving how much was lost.
-
----
+A 200,000-triangle CAD export dropped straight into MoveIt or Gazebo slows planning to a crawl. This command-line tool turns raw meshes into clean, lightweight visual and collision meshes, and tells you exactly how much shape was lost.
 
 ## Highlights
 
-- **Whole robot in one command.** `--urdf robot.urdf` optimizes every mesh the URDF references and writes a rewritten URDF that points at them.
-- **One command → URDF-ready pair.** `_visual.stl` + `_collision.stl` + a drop-in `<link>` snippet.
-- **Measured, not eyeballed.** Symmetric Hausdorff deviation (max / mean / RMS) for every output.
-- **CI-gateable.** A static MoveIt load check exits non-zero when a mesh is missing, empty, or over the collision triangle budget.
-- **Batch mode.** Process a whole robot cell folder with identical parameters, every run.
-- **No ROS install required** to preprocess or validate; drop the outputs into any `*_description` package.
+- **Whole robot in one command.** Point it at a URDF and every mesh gets optimized, with the URDF rewritten to match.
+- **Measured, not eyeballed.** Every output comes with a Hausdorff deviation report.
+- **Ready for CI.** A MoveIt load check fails the build when a mesh is missing, empty or over budget.
+- **No ROS install needed.** Outputs drop straight into any `*_description` package.
 
 <p align="center">
   <img src="docs/img/pipeline.svg" alt="Pipeline: raw mesh, clean, QEM decimation, visual and collision meshes, URDF, MoveIt load check, with metrics report" width="100%">
 </p>
 
----
-
 ## Quick start
 
 ```bash
-git clone https://github.com/ookkshirsagar/ros-mesh-preprocessor.git && cd ros-mesh-preprocessor
+git clone https://github.com/ookkshirsagar/ros-mesh-preprocessor.git
+cd ros-mesh-preprocessor
 pip install -e .
-
-# one mesh
-ros-mesh-preprocessor --input your_mesh.stl --output your_mesh_small.obj --triangles 5000
-
-# a whole robot: every collision mesh in the URDF, URDF rewritten to match
-ros-mesh-preprocessor --urdf my_robot.urdf --output ./optimized --collision 2000
 ```
 
----
+```bash
+# A whole robot: every collision mesh in the URDF, URDF rewritten to match
+ros-mesh-preprocessor --urdf my_robot.urdf --output ./optimized --collision 2000
 
-## Why this exists
+# One mesh
+ros-mesh-preprocessor --input part.stl --output part_small.stl --triangles 5000
+```
 
-Loading a raw CAD export into MoveIt or Gazebo with 200,000 triangles kills real-time planning. This tool solves that problem and goes further:
+Requires Python 3.10 to 3.12. Open3D has no Python 3.13 wheels yet; use a 3.12 virtual environment or the [Docker image](#docker).
 
-| Feature | What it does |
-|---|---|
-| **QEM Decimation** | Reduces triangle count while preserving geometric shape |
-| **Visual / Collision pair** | One command → `_visual.stl` + `_collision.stl` + URDF `<geometry>` snippet |
-| **MoveIt load check** | Validates the exported URDF snippet and mesh files before you wire them into a planning scene |
-| **Batch processing** | Process an entire robot cell folder in one command |
-| **Hausdorff validation** | Quantifies shape deviation before you commit to a simplification level |
-| **JSON benchmark report** | Records triangle count, file size, processing time, and error metrics |
-| **Cross-platform** | Windows and Ubuntu, Python 3.10+ |
+## Results on industrial parts
 
-### Why not MeshLab / Blender / manual decimation?
-
-MeshLab and Blender are excellent for one-off, by-hand mesh cleanup, but neither is built to sit in a pipeline. This tool exists for the case where you have a batch of meshes to process the same way, repeatedly, without a human clicking through a GUI each time:
-
-- **Scriptable and reproducible.** `ros-mesh-preprocessor --folder ./cell_assets --collision 5000` processes an entire robot cell in one command with the same parameters every time: no GUI settings to forget or misremember between runs.
-- **CI-friendly.** It's a normal CLI with exit codes (`0`/`1`/`2`), so it can run in GitHub Actions and fail a build the same way a lint check would. Neither MeshLab nor Blender is designed for that.
-- **Quantified output, not eyeballing.** Every run can emit a JSON report with Hausdorff deviation, so "how much did I just distort this mesh?" has a number, not a guess from rotating it on screen.
-- **Built for the URDF/MoveIt handoff.** The visual/collision pair + `<geometry>` snippet + load-check pipeline is specific to what a ROS2 robot description actually needs, not a general-purpose modelling workflow.
-
-If you're doing one-off manual cleanup of a single hero asset, MeshLab is still the right tool. If you're doing the same decimation across a folder of parts, or wiring it into CI, this is the one built for that.
-
----
-
-## Industrial parts gallery
-
-Six parametric components built from catalogue dimensions with real CSG (bores, keyways, bolt circles, involute teeth, T-slots), tessellated as densely as a CAD "fine" STL export, then pushed through the exact `clean_mesh → simplify_mesh → hausdorff_distance` path the CLI runs. Each tile is a split view: CAD render on the left, the collision mesh with every triangle drawn on the right.
+Six parametric components built from catalogue dimensions (bores, keyways, bolt circles, involute teeth, T-slots), exported as densely as a CAD "fine" STL, then run through the same code path as the CLI. Left of each divider is the CAD model; right is the collision mesh with every triangle drawn.
 
 <p align="center">
-  <img src="docs/img/gallery.png" alt="3x2 grid of industrial components (servo motor, spur gear, weld-neck flange, T-slot extrusion, pillow block bearing, timing pulley), each split between CAD render and decimated collision mesh, with reduction and Hausdorff metrics" width="100%">
+  <img src="docs/img/gallery.png" alt="Grid of six industrial components, each split between the CAD render and the decimated collision mesh, with reduction and deviation metrics" width="100%">
 </p>
 
-| Component | Spec | CAD triangles | Collision triangles | Reduction | Hausdorff RMS | Hausdorff max |
-|---|---|---:|---:|---:|---:|---:|
-| AC servo motor | NEMA 34 frame, finned body, keyed shaft | 370,062 | 1,500 | 99.59% | 0.75 mm | 2.55 mm |
-| Involute spur gear | m3 · z36 · hub, keyway, lightening holes | 418,512 | 3,000 | 99.28% | 0.50 mm | 1.59 mm |
-| Weld-neck flange | DN100 PN16 · raised face · 8 bolt holes | 301,612 | 2,000 | 99.34% | 0.85 mm | 2.90 mm |
-| T-slot extrusion | 40×40 B-type · slot 8 · 160 mm | 673,400 | 1,000 | 99.85% | 0.63 mm | 2.10 mm |
-| Pillow block bearing | UCP205 style · Ø25 shaft · slotted base | 245,408 | 2,000 | 99.19% | 0.47 mm | 3.36 mm |
-| Timing pulley | HTD-5M · 40 teeth · flanged, set-screw hub | 765,876 | 2,500 | 99.67% | 0.41 mm | 1.52 mm |
+| Component | CAD triangles | Collision triangles | Reduction | Deviation (RMS) | Deviation (max) |
+|---|---:|---:|---:|---:|---:|
+| AC servo motor | 370,062 | 1,500 | 99.59% | 0.75 mm | 2.55 mm |
+| Involute spur gear | 418,512 | 3,000 | 99.28% | 0.50 mm | 1.59 mm |
+| Weld-neck flange | 301,612 | 2,000 | 99.34% | 0.85 mm | 2.90 mm |
+| T-slot extrusion | 673,400 | 1,000 | 99.85% | 0.63 mm | 2.10 mm |
+| Pillow block bearing | 245,408 | 2,000 | 99.19% | 0.47 mm | 3.36 mm |
+| Timing pulley | 765,876 | 2,500 | 99.67% | 0.41 mm | 1.52 mm |
 
-<sub>Raw numbers: <a href="docs/figures/results.json"><code>docs/figures/results.json</code></a>. Part geometry: <a href="docs/figures/parts.py"><code>docs/figures/parts.py</code></a>. Hausdorff values are sampled (50k points per surface), so they vary slightly between runs.</sub>
+### Where the geometry went
 
-### Where did the geometry go?
-
-Decimation always removes geometry; the question is *where*. Below, each CAD surface is coloured by its distance to its collision mesh. Planar faces come through untouched (per-part median deviation 0.00 to 0.07 mm); what error there is sits on curved surfaces such as the flange bore and the bearing housing.
+Each CAD surface below is coloured by its distance to its collision mesh. Flat faces come through untouched; the small error that remains sits on curved surfaces such as the flange bore and the bearing housing.
 
 <p align="center">
   <img src="docs/img/hausdorff_heatmap.png" alt="Spur gear, weld-neck flange and pillow block coloured by per-vertex deviation from their collision meshes" width="100%">
 </p>
 
-The heatmap measures one direction (CAD → collision). The symmetric Hausdorff max in the table also measures collision → CAD, which catches collision triangles that cut across concave features. Check both before you commit to a triangle budget.
+<details>
+<summary>How these figures are made</summary>
 
----
+<br>
 
-## Installation
+Part geometry is in [`docs/figures/parts.py`](docs/figures/parts.py) and every number shown is in [`docs/figures/results.json`](docs/figures/results.json). Deviation is the Hausdorff distance, estimated from 50,000 sample points per surface, so values vary slightly between runs. The heatmap measures one direction (CAD to collision); the table's maximum also measures the reverse, which catches collision triangles that cut across concave features.
 
-```bash
-git clone https://github.com/ookkshirsagar/ros-mesh-preprocessor.git
-cd ros-mesh-preprocessor
-
-python3 -m venv venv
-source venv/bin/activate        # Linux / macOS
-venv\Scripts\activate           # Windows PowerShell
-
-pip install -e .                # installs the `ros-mesh-preprocessor` command
-```
-
-> **Python version:** 3.10 to 3.12. Open3D does not publish wheels for Python 3.13 yet, so `pip install` fails there with a "no matching distribution" error for `open3d`. Use a 3.12 virtual environment (`python3.12 -m venv venv`) or the Docker image.
-
-For development (tests, linting, pre-commit):
-
-```bash
-pip install -e ".[dev]"
-pre-commit install
-```
-
-If you'd rather not install the package, `python -m optimizer.cli` still works and takes the same arguments.
-
-### Regenerating the figures
+To regenerate everything (about 3 minutes, no GPU needed):
 
 ```bash
 pip install -e ".[viz]"
-sudo apt install libegl1 libgl1-mesa-dri   # headless OpenGL; no GPU needed
-python docs/generate_figures.py            # ~3 min on a laptop CPU
+sudo apt install libegl1 libgl1-mesa-dri
+python docs/generate_figures.py
 ```
 
-### Docker
-
-No local Open3D / OpenGL setup needed: mount your meshes and run the same CLI in a container.
-
-```bash
-docker build -t ros-mesh-preprocessor .
-docker run --rm -v "$PWD:/work" ros-mesh-preprocessor \
-  --input robot_cell.stl --urdf-output ./output --visual 20000 --collision 3000
-```
-
----
+</details>
 
 ## Usage
 
-Run `ros-mesh-preprocessor --help` for the full flag reference, exit-code contract, and inline examples. The highlights:
-
-### Single file
-
-```bash
-# Reduce to an absolute triangle count
-ros-mesh-preprocessor --input model.stl --output model_small.obj --triangles 5000
-
-# Reduce by percentage (keep 20% of original)
-ros-mesh-preprocessor --input env.ply --output env_small.ply --reduction 80
-
-# Save a JSON report alongside the output
-ros-mesh-preprocessor --input model.stl --output model_small.stl --triangles 5000 --save-report
-
-# Preview what would happen without writing anything
-ros-mesh-preprocessor --input model.stl --output model_small.obj --triangles 5000 --dry-run
-```
-
-Real output from the second command above:
-
-```
-────────────────────────────────────────────────────
-  Mesh Preprocessing Report
-────────────────────────────────────────────────────
-  Input         : /tmp/test_sphere.stl
-  Output        : /tmp/out/small.obj
-  Triangles     : 97,280  →  2,000
-  Reduction     : 97.94%
-  File size     : 4.639 MB  →  0.114 MB
-  Time          : 0.7856 s
-  Hausdorff max : 0.030926 (mesh units)
-  Hausdorff RMS : 0.010032 (mesh units)
-────────────────────────────────────────────────────
-```
-
-### URDF pair: visual + collision mesh
-
-```bash
-ros-mesh-preprocessor \
-  --input robot_cell.stl \
-  --urdf-output ./output \
-  --visual 20000 --collision 3000
-```
-
-Produces:
-```
-output/
-├── robot_cell_visual.stl
-├── robot_cell_collision.stl
-├── robot_cell_urdf_snippet.xml     ← drop-in <geometry> tags
-├── robot_cell_visual_report.json
-└── robot_cell_collision_report.json
-```
-
-The XML snippet is ready to paste into your URDF:
-
-```xml
-<link name="robot_cell">
-  <visual>
-    <geometry>
-      <mesh filename="package://YOUR_PACKAGE/meshes/robot_cell_visual.stl" scale="1 1 1"/>
-    </geometry>
-  </visual>
-  <collision>
-    <geometry>
-      <mesh filename="package://YOUR_PACKAGE/meshes/robot_cell_collision.stl" scale="1 1 1"/>
-    </geometry>
-  </collision>
-</link>
-```
-
-### Batch: entire robot cell folder
-
-```bash
-ros-mesh-preprocessor \
-  --folder ./cell_assets \
-  --output ./optimized \
-  --collision 5000 --save-report
-```
-
-Processes every STL / OBJ / PLY / OFF / GLB in the folder and saves a combined `batch_report.json`.
-
-### Whole robot: every mesh in a URDF
+### Whole robot
 
 ```bash
 ros-mesh-preprocessor \
@@ -248,96 +98,114 @@ ros-mesh-preprocessor \
   --mesh-uri-prefix package://my_robot_description/meshes_optimized
 ```
 
-Reads the URDF, resolves every `<visual>` / `<collision>` `<mesh filename="...">` (`package://`, `file://` or relative paths), decimates each unique mesh once, and writes:
+This writes a copy of the URDF with updated mesh paths, the new meshes (`meshes/collision/`, plus `meshes/visual/` if you pass `--visual N`), and a `urdf_report.json` with per-mesh triangle counts and deviation.
 
-```
-my_robot_optimized/
-├── my_robot.urdf              ← same robot, mesh URIs rewritten
-├── meshes/collision/*.stl     ← each within the --collision budget
-├── meshes/visual/*.stl        ← only if you pass --visual N
-└── urdf_report.json           ← per-mesh triangles, timing, Hausdorff deviation
-```
+Only mesh references change. Joints, inertials, materials, primitive shapes and `ros2_control` / `gazebo` tags are copied as they are.
 
-- **Only meshes are touched.** Joints, inertials, materials, primitive shapes, comments and `<ros2_control>` / `<gazebo>` tags pass through unchanged.
-- **Visual meshes are left alone by default**, because they usually carry colours and materials (`.dae`). Pass `--visual N` to decimate them too.
-- **Shared meshes are processed once**, and meshes already under budget are copied without decimation.
-- **Formats Open3D can't read** (e.g. COLLADA `.dae`) are skipped, keep their original URI, and are reported as skipped.
-- **Package lookup.** `package://` names are found next to the URDF, through `AMENT_PREFIX_PATH` (a sourced ROS 2 workspace), or with `--package-path NAME=DIR`.
-- **xacro.** Expand first: `xacro robot.urdf.xacro > robot.urdf`.
-- **Dry run.** `--dry-run` prints the plan without writing anything.
+<details>
+<summary>Details: package lookup, visual meshes, xacro, dry run</summary>
 
-Real run on the Universal Robots **UR5e**, using the vendor's own visual geometry as collision meshes (the way many CAD-exported robots ship). The meshes come from [Universal_Robots_ROS2_Description](https://github.com/UniversalRobots/Universal_Robots_ROS2_Description), BSD-3-Clause, with `.dae` converted to STL:
+<br>
 
-```
-  role      mesh                                 triangles   dev RMS  status
-  collision base.stl                        4,838 -> 1,499  1.53e-03  simplified
-  collision shoulder.stl                   23,290 -> 1,500  1.59e-03  simplified
-  collision upperarm.stl                   40,124 -> 1,500  2.67e-03  simplified
-  collision forearm.stl                    15,058 -> 1,500  2.06e-03  simplified
-  collision wrist1.stl                     17,288 -> 1,500  1.14e-03  simplified
-  collision wrist2.stl                     20,280 -> 1,499  1.07e-03  simplified
-  collision wrist3.stl                          911 -> 911         -  copied
-  Total collision: 121,789 -> 9,909 triangles (91.9% fewer)
-```
+- **Package lookup.** `package://` names are found next to the URDF, in a sourced ROS 2 workspace (`AMENT_PREFIX_PATH`), or with `--package-path NAME=DIR`.
+- **Visual meshes** are left alone unless you pass `--visual N`, because they usually carry colours and materials.
+- **Shared meshes** are processed once. Meshes already under budget are copied without decimation.
+- **Unsupported formats** such as COLLADA `.dae` keep their original path and are listed as skipped.
+- **xacro files** must be expanded first: `xacro robot.urdf.xacro > robot.urdf`.
+- **`--dry-run`** prints the plan without writing anything.
 
-All seven links finish in under 2 s on a laptop CPU, at 1 to 3 mm RMS deviation (mesh units are metres). For scale, Universal Robots' hand-made collision meshes for the same arm total 7,558 triangles.
+</details>
 
-### Explicit format override
+**Tested on a real robot.** Using the Universal Robots UR5e's visual geometry as collision meshes (the way many CAD-exported robots ship), all seven links were processed in under 2 seconds:
 
-```bash
-# Force OBJ output regardless of the output path's extension
-ros-mesh-preprocessor --input model.stl --output model_small --triangles 5000 --format obj
-```
+| Link mesh | Before | After | Deviation (RMS) |
+|---|---:|---:|---:|
+| base | 4,838 | 1,499 | 1.5 mm |
+| shoulder | 23,290 | 1,500 | 1.6 mm |
+| upper arm | 40,124 | 1,500 | 2.7 mm |
+| forearm | 15,058 | 1,500 | 2.1 mm |
+| wrist 1 | 17,288 | 1,500 | 1.1 mm |
+| wrist 2 | 20,280 | 1,499 | 1.1 mm |
+| wrist 3 | 911 | 911 (already under budget) | 0 mm |
+| **Total** | **121,789** | **9,909** | |
 
-### Verbose logging
+<sub>Meshes from [Universal_Robots_ROS2_Description](https://github.com/UniversalRobots/Universal_Robots_ROS2_Description) (BSD-3-Clause), converted from `.dae` to STL. For scale, Universal Robots' hand-made collision meshes for this arm total 7,558 triangles.</sub>
+
+### Single mesh
 
 ```bash
-ros-mesh-preprocessor --folder ./cell_assets --collision 5000 -v
+# To a fixed triangle count
+ros-mesh-preprocessor --input model.stl --output model_small.obj --triangles 5000
+
+# By percentage (keep 20%)
+ros-mesh-preprocessor --input env.ply --output env_small.ply --reduction 80
 ```
 
----
-
-## Robotics workflow demo
-
-`examples/moveit_cell_demo` runs the full, believable pipeline a robot cell integrator would actually follow:
-
-```
-raw mesh → clean → visual/collision decimation → URDF snippet → MoveIt load check
-```
+### Visual and collision pair from one mesh
 
 ```bash
-python examples/moveit_cell_demo/run_demo.py
+ros-mesh-preprocessor --input robot_cell.stl --urdf-output ./output --visual 20000 --collision 3000
 ```
 
-It generates a synthetic high-polygon mesh if no `robot_cell.stl` is present, runs the URDF export, and finishes with a **MoveIt load check**, a static validation pass (no ROS2/MoveIt install required) that confirms the generated URDF snippet is well-formed, every referenced mesh file exists and loads, and the collision mesh is within a real-time triangle budget. Real output:
+This produces `robot_cell_visual.stl`, `robot_cell_collision.stl`, JSON reports, and a `<link>` snippet ready to paste into your URDF.
 
-```
-────────────────────────────────────────────────────────────
-  MoveIt Load Check
-────────────────────────────────────────────────────────────
-  [PASS] URDF snippet is well-formed XML  (.../robot_cell_urdf_snippet.xml)
-  [PASS] Root element is <link>  (name=robot_cell)
-  [PASS] <visual> element present
-  [PASS] visual mesh file exists on disk  (.../robot_cell_visual.stl)
-  [PASS] visual mesh has triangles  (20,000 triangles)
-  [PASS] visual mesh has positive surface area  (3.125470)
-  [PASS] <collision> element present
-  [PASS] collision mesh file exists on disk  (.../robot_cell_collision.stl)
-  [PASS] collision mesh has triangles  (3,000 triangles)
-  [PASS] collision mesh has positive surface area  (3.125470)
-  [PASS] collision mesh is within the 5,000-triangle real-time budget  (3,000 / 5,000)
-────────────────────────────────────────────────────────────
-  Overall: READY FOR MOVEIT
-────────────────────────────────────────────────────────────
+### A folder of meshes
+
+```bash
+ros-mesh-preprocessor --folder ./cell_assets --output ./optimized --collision 5000 --save-report
 ```
 
-The script exits `0` when every check passes and `1` otherwise, so it's usable as a CI gate on generated robot assets.
+<details>
+<summary>More options</summary>
 
----
+<br>
 
-## Benchmark report
+| Flag | Effect |
+|---|---|
+| `--save-report` | Write a JSON report next to each output |
+| `--dry-run` | Show what would happen without writing files |
+| `--format obj` | Force the output format regardless of file extension |
+| `--skip-hausdorff` | Skip the deviation measurement (faster on huge meshes) |
+| `-v` | Verbose logging |
 
-Every run can emit a structured JSON report:
+Run `ros-mesh-preprocessor --help` for the full reference. Exit codes: `0` success, `1` a reported error, `2` invalid arguments.
+
+Supported formats for reading and writing: STL, OBJ, PLY, OFF, GLB and glTF. Changing the output extension converts the format.
+
+</details>
+
+### Docker
+
+```bash
+docker build -t ros-mesh-preprocessor .
+docker run --rm -v "$PWD:/work" ros-mesh-preprocessor --urdf robot.urdf --output out --collision 2000
+```
+
+## Validation and benchmarks
+
+**MoveIt load check.** `python examples/moveit_cell_demo/run_demo.py` runs the full pipeline and finishes with a static check: the URDF is valid XML, every mesh file exists and loads, and the collision mesh is within budget. It exits `0` on success and `1` otherwise, so it works as a CI gate.
+
+**Speed and quality.** Decimating a 389,120-triangle mesh to targets between 500 and 20,000 triangles takes about 4 seconds each, and the deviation stays flat across the whole range:
+
+![Benchmark plots: deviation, output file size and processing time per target triangle count](docs/img/benchmark_tradeoff.png)
+
+<details>
+<summary>Benchmark table and report format</summary>
+
+<br>
+
+| Target triangles | Reduction | File size | Time | Deviation (max) | Deviation (RMS) |
+|---:|---:|---:|---:|---:|---:|
+| 20,000 | 94.86% | 18.6 MB to 0.95 MB | 4.01 s | 0.0319 | 0.0100 |
+| 10,000 | 97.43% | 18.6 MB to 0.48 MB | 4.11 s | 0.0302 | 0.0100 |
+| 5,000 | 98.72% | 18.6 MB to 0.24 MB | 4.53 s | 0.0314 | 0.0099 |
+| 2,000 | 99.49% | 18.6 MB to 0.10 MB | 4.12 s | 0.0313 | 0.0100 |
+| 1,000 | 99.74% | 18.6 MB to 0.05 MB | 4.05 s | 0.0284 | 0.0100 |
+| 500 | 99.87% | 18.6 MB to 0.02 MB | 4.92 s | 0.0338 | 0.0109 |
+
+Deviations are in mesh units. Reproduce with `python benchmarks/generate_report.py`; raw output is in [`benchmarks/performance_results.json`](benchmarks/performance_results.json).
+
+Each run's `--save-report` JSON looks like this:
 
 ```json
 {
@@ -355,153 +223,53 @@ Every run can emit a structured JSON report:
 }
 ```
 
-**Hausdorff distance** (in mesh units) quantifies the maximum and average geometric deviation between the original and simplified surface, letting you make an informed decision about how aggressively to decimate without a visual inspection.
+</details>
 
-### Reduction vs. quality trade-off
+## Why not MeshLab or Blender?
 
-Real numbers from `benchmarks/generate_report.py`, decimating a 389,120-triangle synthetic mesh to six target sizes (reproduce with `python benchmarks/generate_report.py`; full output in [`benchmarks/performance_results.json`](benchmarks/performance_results.json)):
-
-| Target triangles | Reduction | File size | Time | Hausdorff max | Hausdorff RMS |
-|---:|---:|---:|---:|---:|---:|
-| 20,000 | 94.86% | 18.6 MB → 0.95 MB | 4.01 s | 0.0319 | 0.0100 |
-| 10,000 | 97.43% | 18.6 MB → 0.48 MB | 4.11 s | 0.0302 | 0.0100 |
-| 5,000  | 98.72% | 18.6 MB → 0.24 MB | 4.53 s | 0.0314 | 0.0099 |
-| 2,000  | 99.49% | 18.6 MB → 0.10 MB | 4.12 s | 0.0313 | 0.0100 |
-| 1,000  | 99.74% | 18.6 MB → 0.05 MB | 4.05 s | 0.0284 | 0.0100 |
-| 500    | 99.87% | 18.6 MB → 0.02 MB | 4.92 s | 0.0338 | 0.0109 |
-
-![Benchmark plots: Hausdorff deviation, output file size and wall time per target triangle count](docs/img/benchmark_tradeoff.png)
-
-Hausdorff deviation stays essentially flat across two orders of magnitude of reduction on this mesh, a sign the QEM decimation is preserving overall shape well even at aggressive reduction levels, though the right target for your own geometry should still be picked using its own Hausdorff numbers, not this table.
-
----
-
-## Project structure
-
-```
-ros-mesh-preprocessor/
-│
-├── optimizer/
-│   ├── __init__.py
-│   ├── core.py           # Load, clean, simplify, save
-│   ├── metrics.py        # Hausdorff distance + benchmark report
-│   ├── urdf_export.py    # Visual/collision pair + URDF snippet
-│   ├── urdf_robot.py     # Whole-robot mode: optimize every mesh in a URDF, rewrite URIs
-│   ├── moveit_check.py   # Static URDF/mesh validation ("would this load in MoveIt?")
-│   └── cli.py            # argparse CLI, packaged as the `ros-mesh-preprocessor` command
-│
-├── examples/
-│   └── moveit_cell_demo/
-│       └── run_demo.py   # raw mesh -> clean -> decimate -> URDF -> load check
-│
-├── benchmarks/
-│   ├── generate_report.py       # regenerates performance_results.json
-│   └── performance_results.json
-│
-├── docs/
-│   ├── generate_figures.py  # regenerates every README figure from real pipeline output
-│   ├── figures/
-│   │   ├── parts.py         # parametric industrial components (CSG via trimesh + manifold3d)
-│   │   ├── render.py        # headless pyrender/EGL studio renderer
-│   │   └── results.json     # every number shown in the figures
-│   └── img/                 # hero, gallery, heatmap, benchmark plots, pipeline.svg
-│
-├── tests/
-│   ├── test_core.py         # load/save, simplify, malformed-input, regression tests
-│   ├── test_urdf_export.py
-│   ├── test_moveit_check.py
-│   └── test_cli.py          # exit codes, dry-run behaviour
-│
-├── .github/
-│   ├── workflows/ci.yml     # lint, test matrix (3.10-3.12), packaging build, Docker build
-│   ├── workflows/release.yml # tag v*.*.* → test, build, PyPI (trusted publishing), GitHub Release
-│   ├── ISSUE_TEMPLATE/      # bug report + feature request forms
-│   ├── pull_request_template.md
-│   └── dependabot.yml
-├── Dockerfile               # containerised CLI for CI pipelines
-├── RELEASING.md             # how to cut a release (tag → PyPI + GitHub Release)
-├── CITATION.cff
-├── .pre-commit-config.yaml
-├── pyproject.toml           # packaging + console_scripts entry point
-├── requirements.txt
-├── requirements-dev.txt
-├── CHANGELOG.md
-├── LICENSE
-└── README.md
-```
-
----
-
-## Running tests
-
-```bash
-pip install -e ".[dev]"
-pytest tests/ -v
-```
-
-72 tests covering mesh load/save round-trips across all supported formats, malformed/missing input handling, triangle-count reduction regression bounds, URDF export correctness, whole-robot URDF mode (`package://` / `file://` / relative URI resolution, shared meshes, pass-through of non-mesh tags, xacro rejection), MoveIt load-check logic, and CLI exit codes.
-
----
-
-## Supported formats
-
-| Format | Extension | Read | Write |
-|---|---|---|---|
-| STL | `.stl` | ✅ | ✅ |
-| OBJ | `.obj` | ✅ | ✅ |
-| PLY | `.ply` | ✅ | ✅ |
-| OFF | `.off` | ✅ | ✅ |
-| GLB / GLTF | `.glb` `.gltf` | ✅ | ✅ |
-
-Format conversion is free: specify a different extension on `--output`, or force one explicitly with `--format`.
-
----
+They're excellent for one-off manual cleanup. This tool is for the repeatable case: the same settings across a whole robot, every time, scriptable and runnable in CI, with a number for how much each mesh changed.
 
 ## Roadmap
 
-- [x] Whole-robot URDF mode (`--urdf`)
-- [ ] COLLADA (`.dae`) input for visual meshes
-- [ ] Convex decomposition collision mode (CoACD / V-HACD)
-- [ ] MJCF (MuJoCo) and SDF (Gazebo) export
-- [ ] Voxel-based simplification mode (alternative to QEM)
-- [ ] ROS2 launch file integration example
-- [ ] Planning time benchmark (MoveIt before/after comparison)
-- [x] Dockerfile for containerized CI runs
-- [x] Tagged releases published to PyPI (see [RELEASING.md](RELEASING.md))
-
----
+- [x] Whole-robot URDF mode
+- [x] Docker image and automated PyPI releases
+- [ ] COLLADA (`.dae`) input
+- [ ] Convex decomposition for collision meshes (CoACD / V-HACD)
+- [ ] MuJoCo (MJCF) and Gazebo (SDF) export
+- [ ] MoveIt planning-time benchmark, before and after
 
 ## Contributing
 
-Pull requests are welcome. For major changes, open an issue first to discuss what you would like to change. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+Pull requests are welcome; for larger changes, please open an issue first. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ```bash
 pip install -e ".[dev]"
-pre-commit install   # runs black + flake8 on every commit
-
-pytest tests/ -v            # test
-black --line-length 99 optimizer/ tests/   # format
-flake8 optimizer/ tests/    # lint
+pre-commit install
+pytest tests/
 ```
 
-See [CHANGELOG.md](CHANGELOG.md) for release history.
+<details>
+<summary>Project layout</summary>
 
----
+<br>
 
-## Citation
+```
+optimizer/            the package
+  core.py               load, clean, simplify, save
+  metrics.py            Hausdorff deviation and JSON reports
+  urdf_robot.py         whole-robot URDF mode
+  urdf_export.py        visual and collision pair with URDF snippet
+  moveit_check.py       static MoveIt load check
+  cli.py                command-line interface
+examples/             end-to-end MoveIt demo
+benchmarks/           benchmark script and results
+docs/                 figure generator, part models, images
+tests/                72 tests
+.github/              CI, release workflow, issue templates, Dependabot
+```
 
-If this tool is useful in your research or product, please cite it via [`CITATION.cff`](CITATION.cff) (GitHub's "Cite this repository" button).
+</details>
 
----
+## Citation and license
 
-## License
-
-[MIT](LICENSE)
-
----
-
-## Related tools
-
-- [Open3D](http://www.open3d.org/): the geometry processing engine powering this toolkit
-- [MoveIt](https://moveit.ros.org/): motion planning framework for ROS2
-- [Meshlab](https://www.meshlab.net/): GUI alternative for manual mesh inspection
+If this tool helps your research or product, please cite it using [`CITATION.cff`](CITATION.cff) (GitHub's "Cite this repository" button). Released under the [MIT License](LICENSE). Built on [Open3D](https://www.open3d.org/).
