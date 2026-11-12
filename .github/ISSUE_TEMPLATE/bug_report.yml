@@ -33,6 +33,6 @@ body:
     id: env
     attributes:
       label: Environment
-      description: OS, Python version, `ros-mesh-preprocessor --version`, `python -c "import open3d; print(open3d.__version__)"`.
+      description: OS, Python version, `urdf-mesh-optimizer --version`, `python -c "import open3d; print(open3d.__version__)"`.
     validations:
       required: true

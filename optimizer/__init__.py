@@ -1,3 +1,3 @@
-"""ros-mesh-preprocessor: geometry toolkit for ROS2 / MoveIt / industrial cells."""
+"""urdf-mesh-optimizer: lightweight visual and collision meshes for ROS 2 / MoveIt."""
 
 __version__ = "0.2.0"

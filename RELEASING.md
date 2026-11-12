@@ -2,7 +2,7 @@
 
 Releases are fully automated by [`.github/workflows/release.yml`](.github/workflows/release.yml):
 pushing a `vX.Y.Z` tag runs the tests, builds the sdist and wheel, publishes them to
-[PyPI](https://pypi.org/project/ros-mesh-preprocessor/) and creates a GitHub Release
+[PyPI](https://pypi.org/project/urdf-mesh-optimizer/) and creates a GitHub Release
 whose notes are that version's section of [CHANGELOG.md](CHANGELOG.md).
 
 ## One-time setup (repository owner)
@@ -12,9 +12,9 @@ PyPI publishing uses [Trusted Publishing](https://docs.pypi.org/trusted-publishe
 
 1. Sign in at <https://pypi.org> (create an account and enable 2FA if needed).
 2. Go to **Your account → Publishing → Add a new pending publisher** and enter:
-   - PyPI project name: `ros-mesh-preprocessor`
+   - PyPI project name: `urdf-mesh-optimizer`
    - Owner: `ookkshirsagar`
-   - Repository name: `ros-mesh-preprocessor`
+   - Repository name: `urdf-mesh-optimizer`
    - Workflow name: `release.yml`
    - Environment name: `pypi`
 3. On GitHub: **Settings → Environments → New environment** named `pypi`.
@@ -42,8 +42,8 @@ publisher becomes a normal trusted publisher.
 
 ## After the first release
 
-Add a PyPI badge to the README and switch the Quick start to `pip install ros-mesh-preprocessor`:
+Add a PyPI badge to the README and switch the Quick start to `pip install urdf-mesh-optimizer`:
 
 ```markdown
-[![PyPI](https://img.shields.io/pypi/v/ros-mesh-preprocessor.svg)](https://pypi.org/project/ros-mesh-preprocessor/)
+[![PyPI](https://img.shields.io/pypi/v/urdf-mesh-optimizer.svg)](https://pypi.org/project/urdf-mesh-optimizer/)
 ```

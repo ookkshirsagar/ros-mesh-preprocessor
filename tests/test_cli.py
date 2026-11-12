@@ -26,7 +26,7 @@ def sphere_stl(tmp_path):
 
 
 def _run(monkeypatch, argv):
-    monkeypatch.setattr("sys.argv", ["ros-mesh-preprocessor"] + argv)
+    monkeypatch.setattr("sys.argv", ["urdf-mesh-optimizer"] + argv)
     with pytest.raises(SystemExit) as exc_info:
         main()
     return exc_info.value.code
@@ -103,7 +103,7 @@ class TestDryRun:
         monkeypatch.setattr(
             "sys.argv",
             [
-                "ros-mesh-preprocessor",
+                "urdf-mesh-optimizer",
                 "--input",
                 str(sphere_stl),
                 "--output",
@@ -122,7 +122,7 @@ class TestDryRun:
         monkeypatch.setattr(
             "sys.argv",
             [
-                "ros-mesh-preprocessor",
+                "urdf-mesh-optimizer",
                 "--folder",
                 str(sphere_stl.parent),
                 "--output",
@@ -142,7 +142,7 @@ class TestSuccessfulRun:
         monkeypatch.setattr(
             "sys.argv",
             [
-                "ros-mesh-preprocessor",
+                "urdf-mesh-optimizer",
                 "--input",
                 str(sphere_stl),
                 "--output",

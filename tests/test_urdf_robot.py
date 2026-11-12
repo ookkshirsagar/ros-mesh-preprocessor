@@ -226,7 +226,7 @@ class TestOptimizeUrdf:
 
 class TestRobotCli:
     def _run(self, monkeypatch, argv):
-        monkeypatch.setattr("sys.argv", ["ros-mesh-preprocessor"] + argv)
+        monkeypatch.setattr("sys.argv", ["urdf-mesh-optimizer"] + argv)
         try:
             main()
         except SystemExit as exc:

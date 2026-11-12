@@ -1,19 +1,19 @@
 """
-cli.py - Command-line interface for ros-mesh-preprocessor.
+cli.py - Command-line interface for urdf-mesh-optimizer.
 
 Single file:
-    ros-mesh-preprocessor --input model.stl --output model_small.obj --triangles 5000
-    ros-mesh-preprocessor --input model.stl --output model_small.obj --reduction 80
+    urdf-mesh-optimizer --input model.stl --output model_small.obj --triangles 5000
+    urdf-mesh-optimizer --input model.stl --output model_small.obj --reduction 80
 
 URDF pair (visual + collision):
-    ros-mesh-preprocessor --input cell.stl --urdf-output ./output \
+    urdf-mesh-optimizer --input cell.stl --urdf-output ./output \
         --visual 20000 --collision 3000
 
 Batch (folder):
-    ros-mesh-preprocessor --folder ./cell_assets --output ./output --collision 5000
+    urdf-mesh-optimizer --folder ./cell_assets --output ./output --collision 5000
 
 Whole robot (every mesh in a URDF, URIs rewritten):
-    ros-mesh-preprocessor --urdf my_robot.urdf --output ./optimized --collision 3000
+    urdf-mesh-optimizer --urdf my_robot.urdf --output ./optimized --collision 3000
 
 Exit codes:
     0  success
@@ -219,7 +219,7 @@ def _process_robot_urdf(args: argparse.Namespace) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="ros-mesh-preprocessor",
+        prog="urdf-mesh-optimizer",
         description=(
             "Mesh optimization toolkit for ROS2, MoveIt, and digital twins: "
             "decimation, URDF export, and geometric validation."
@@ -228,32 +228,32 @@ def build_parser() -> argparse.ArgumentParser:
         epilog="""
 Examples:
   # Reduce a single file to 5 000 triangles
-  ros-mesh-preprocessor --input gear.stl --output gear_small.obj --triangles 5000
+  urdf-mesh-optimizer --input gear.stl --output gear_small.obj --triangles 5000
 
   # Reduce by percentage
-  ros-mesh-preprocessor --input env.ply --output env_small.ply --reduction 80
+  urdf-mesh-optimizer --input env.ply --output env_small.ply --reduction 80
 
   # Preview what a run would do without writing anything
-  ros-mesh-preprocessor --input gear.stl --output gear_small.obj --triangles 5000 --dry-run
+  urdf-mesh-optimizer --input gear.stl --output gear_small.obj --triangles 5000 --dry-run
 
   # Generate URDF-ready visual + collision pair
-  ros-mesh-preprocessor --input robot_cell.stl --urdf-output ./output \\
+  urdf-mesh-optimizer --input robot_cell.stl --urdf-output ./output \\
       --visual 20000 --collision 3000
 
   # Batch-process a whole folder, forcing OBJ output regardless of source format
-  ros-mesh-preprocessor --folder ./cell_assets --output ./optimized \\
+  urdf-mesh-optimizer --folder ./cell_assets --output ./optimized \\
       --collision 5000 --format obj
 
   # Optimize every mesh in a robot description, rewriting the URDF to match
-  ros-mesh-preprocessor --urdf ur5e.urdf --output ./ur5e_optimized --collision 2000 \\
+  urdf-mesh-optimizer --urdf ur5e.urdf --output ./ur5e_optimized --collision 2000 \\
       --mesh-uri-prefix package://ur5e_description/meshes_optimized
 
   # Verbose logging for debugging a large batch job
-  ros-mesh-preprocessor --folder ./cell_assets --collision 5000 -v
+  urdf-mesh-optimizer --folder ./cell_assets --collision 5000 -v
 """,
     )
 
-    p.add_argument("--version", action="version", version=f"ros-mesh-preprocessor {__version__}")
+    p.add_argument("--version", action="version", version=f"urdf-mesh-optimizer {__version__}")
 
     # --- Input modes ---
     input_group = p.add_mutually_exclusive_group(required=True)

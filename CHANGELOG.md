@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with the changelog notes. README links are made absolute for the PyPI page.
   See `RELEASING.md`.
 - `pyproject.toml` packaging: install with `pip install .` and run the
-  `ros-mesh-preprocessor` command directly instead of `python -m optimizer.cli`.
+  `urdf-mesh-optimizer` command directly instead of `python -m optimizer.cli`.
 - `--version`, `--dry-run`, `-v/--verbose`, and `--format` CLI flags.
 - Consistent process exit codes: `0` success, `1` known runtime error, `2`
   argument-parsing error.
@@ -79,6 +79,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   instead of letting open3d silently return an empty mesh.
 
 ### Changed
+- Renamed the project, PyPI distribution, CLI command and Docker image from
+  `ros-mesh-preprocessor` to `urdf-mesh-optimizer`. The Python import
+  package is still `optimizer`.
 - Status output now goes through Python's `logging` module instead of bare
   `print`, so verbosity is controllable with `-v`.
 - Package metadata uses an SPDX license expression (`license = "MIT"`),
@@ -91,5 +94,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Hausdorff-distance validation, batch folder processing, and JSON benchmark
   reports.
 
-[Unreleased]: https://github.com/ookkshirsagar/ros-mesh-preprocessor/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/ookkshirsagar/ros-mesh-preprocessor/releases/tag/v0.2.0
+[Unreleased]: https://github.com/ookkshirsagar/urdf-mesh-optimizer/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ookkshirsagar/urdf-mesh-optimizer/releases/tag/v0.2.0

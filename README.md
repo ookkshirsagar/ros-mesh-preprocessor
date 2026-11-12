@@ -1,10 +1,10 @@
 <div align="center">
 
-# ros-mesh-preprocessor
+# urdf-mesh-optimizer
 
 **Turn heavy CAD exports into real-time-ready visual and collision meshes for ROS 2, MoveIt and Gazebo.**
 
-[![CI](https://github.com/ookkshirsagar/ros-mesh-preprocessor/actions/workflows/ci.yml/badge.svg)](https://github.com/ookkshirsagar/ros-mesh-preprocessor/actions/workflows/ci.yml)
+[![CI](https://github.com/ookkshirsagar/urdf-mesh-optimizer/actions/workflows/ci.yml/badge.svg)](https://github.com/ookkshirsagar/urdf-mesh-optimizer/actions/workflows/ci.yml)
 [![Python 3.10 to 3.12](https://img.shields.io/badge/python-3.10%20to%203.12-blue.svg)](pyproject.toml)
 [![ROS 2](https://img.shields.io/badge/ROS%202-URDF%20assets-22314E?logo=ros)](https://docs.ros.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -29,20 +29,26 @@ A 200,000-triangle CAD export dropped straight into MoveIt or Gazebo slows plann
 ## Quick start
 
 ```bash
-git clone https://github.com/ookkshirsagar/ros-mesh-preprocessor.git
-cd ros-mesh-preprocessor
+git clone https://github.com/ookkshirsagar/urdf-mesh-optimizer.git
+cd urdf-mesh-optimizer
 pip install -e .
 ```
 
 ```bash
 # A whole robot: every collision mesh in the URDF, URDF rewritten to match
-ros-mesh-preprocessor --urdf my_robot.urdf --output ./optimized --collision 2000
+urdf-mesh-optimizer --urdf my_robot.urdf --output ./optimized --collision 2000
 
 # One mesh
-ros-mesh-preprocessor --input part.stl --output part_small.stl --triangles 5000
+urdf-mesh-optimizer --input part.stl --output part_small.stl --triangles 5000
 ```
 
 Requires Python 3.10 to 3.12. Open3D has no Python 3.13 wheels yet; use a 3.12 virtual environment or the [Docker image](#docker).
+
+On minimal Linux systems (servers, WSL, containers), an `ImportError` such as `libEGL.so.1: cannot open shared object file` means Open3D's system libraries are missing:
+
+```bash
+sudo apt install libegl1 libgl1 libx11-6 libudev1 libusb-1.0-0 libgomp1
+```
 
 ## Results on industrial parts
 
@@ -91,7 +97,7 @@ python docs/generate_figures.py
 ### Whole robot
 
 ```bash
-ros-mesh-preprocessor \
+urdf-mesh-optimizer \
   --urdf my_robot_description/urdf/my_robot.urdf \
   --output ./my_robot_optimized \
   --collision 2000 \
@@ -135,16 +141,16 @@ Only mesh references change. Joints, inertials, materials, primitive shapes and 
 
 ```bash
 # To a fixed triangle count
-ros-mesh-preprocessor --input model.stl --output model_small.obj --triangles 5000
+urdf-mesh-optimizer --input model.stl --output model_small.obj --triangles 5000
 
 # By percentage (keep 20%)
-ros-mesh-preprocessor --input env.ply --output env_small.ply --reduction 80
+urdf-mesh-optimizer --input env.ply --output env_small.ply --reduction 80
 ```
 
 ### Visual and collision pair from one mesh
 
 ```bash
-ros-mesh-preprocessor --input robot_cell.stl --urdf-output ./output --visual 20000 --collision 3000
+urdf-mesh-optimizer --input robot_cell.stl --urdf-output ./output --visual 20000 --collision 3000
 ```
 
 This produces `robot_cell_visual.stl`, `robot_cell_collision.stl`, JSON reports, and a `<link>` snippet ready to paste into your URDF.
@@ -152,7 +158,7 @@ This produces `robot_cell_visual.stl`, `robot_cell_collision.stl`, JSON reports,
 ### A folder of meshes
 
 ```bash
-ros-mesh-preprocessor --folder ./cell_assets --output ./optimized --collision 5000 --save-report
+urdf-mesh-optimizer --folder ./cell_assets --output ./optimized --collision 5000 --save-report
 ```
 
 <details>
@@ -168,7 +174,7 @@ ros-mesh-preprocessor --folder ./cell_assets --output ./optimized --collision 50
 | `--skip-hausdorff` | Skip the deviation measurement (faster on huge meshes) |
 | `-v` | Verbose logging |
 
-Run `ros-mesh-preprocessor --help` for the full reference. Exit codes: `0` success, `1` a reported error, `2` invalid arguments.
+Run `urdf-mesh-optimizer --help` for the full reference. Exit codes: `0` success, `1` a reported error, `2` invalid arguments.
 
 Supported formats for reading and writing: STL, OBJ, PLY, OFF, GLB and glTF. Changing the output extension converts the format.
 
@@ -177,8 +183,8 @@ Supported formats for reading and writing: STL, OBJ, PLY, OFF, GLB and glTF. Cha
 ### Docker
 
 ```bash
-docker build -t ros-mesh-preprocessor .
-docker run --rm -v "$PWD:/work" ros-mesh-preprocessor --urdf robot.urdf --output out --collision 2000
+docker build -t urdf-mesh-optimizer .
+docker run --rm -v "$PWD:/work" urdf-mesh-optimizer --urdf robot.urdf --output out --collision 2000
 ```
 
 ## Validation and benchmarks

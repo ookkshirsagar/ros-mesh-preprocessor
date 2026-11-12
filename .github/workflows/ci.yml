@@ -58,5 +58,5 @@ jobs:
     needs: [lint]
     steps:
       - uses: actions/checkout@v7
-      - run: docker build -t ros-mesh-preprocessor .
-      - run: docker run --rm ros-mesh-preprocessor --version
+      - run: docker build -t urdf-mesh-optimizer .
+      - run: docker run --rm urdf-mesh-optimizer --version

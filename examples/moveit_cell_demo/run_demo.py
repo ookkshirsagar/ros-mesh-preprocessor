@@ -61,7 +61,7 @@ def main():
     if not CELL_MESH_PATH.exists():
         _create_synthetic_cell(CELL_MESH_PATH)
 
-    print("\n=== MoveIt Cell Demo: ros-mesh-preprocessor ===\n")
+    print("\n=== MoveIt Cell Demo: urdf-mesh-optimizer ===\n")
     print(
         "[demo] Pipeline: raw mesh -> clean -> visual/collision decimation -> URDF -> load check\n"
     )

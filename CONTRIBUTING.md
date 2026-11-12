@@ -1,4 +1,4 @@
-# Contributing to ros-mesh-preprocessor
+# Contributing to urdf-mesh-optimizer
 
 Thank you for considering a contribution. This is a robotics-focused tool and contributions that keep it practical and purposeful are most welcome.
 
@@ -25,8 +25,8 @@ Open an issue before starting work on:
 ## Getting started
 
 ```bash
-git clone https://github.com/ookkshirsagar/ros-mesh-preprocessor.git
-cd ros-mesh-preprocessor
+git clone https://github.com/ookkshirsagar/urdf-mesh-optimizer.git
+cd urdf-mesh-optimizer
 
 python3 -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
