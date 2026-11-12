@@ -1,6 +1,6 @@
 # Releasing
 
-Releases are fully automated by [`.github/workflows/release.yml`](.github/workflows/release.yml):
+Releases are fully automated by [`.github/workflows/release.yaml`](.github/workflows/release.yaml):
 pushing a `vX.Y.Z` tag runs the tests, builds the sdist and wheel, publishes them to
 [PyPI](https://pypi.org/project/urdf-mesh-optimizer/) and creates a GitHub Release
 whose notes are that version's section of [CHANGELOG.md](CHANGELOG.md).
@@ -15,7 +15,7 @@ PyPI publishing uses [Trusted Publishing](https://docs.pypi.org/trusted-publishe
    - PyPI project name: `urdf-mesh-optimizer`
    - Owner: `ookkshirsagar`
    - Repository name: `urdf-mesh-optimizer`
-   - Workflow name: `release.yml`
+   - Workflow name: `release.yaml`
    - Environment name: `pypi`
 3. On GitHub: **Settings → Environments → New environment** named `pypi`.
    Optionally add yourself as a required reviewer so every publish needs a click.

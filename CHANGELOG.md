@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   skips formats open3d cannot read; passes every non-mesh element and comment
   through; rejects unexpanded xacro. `--mesh-uri-prefix` sets the rewritten
   URIs, e.g. `package://my_robot_description/meshes_optimized`.
-- Release workflow (`.github/workflows/release.yml`): pushing a `v*.*.*` tag
+- Release workflow (`.github/workflows/release.yaml`): pushing a `v*.*.*` tag
   runs the tests, checks the tag matches `optimizer.__version__`, builds,
   publishes to PyPI via Trusted Publishing, and creates a GitHub Release
   with the changelog notes. README links are made absolute for the PyPI page.
