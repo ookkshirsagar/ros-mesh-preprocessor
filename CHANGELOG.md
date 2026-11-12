@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- The Hugging Face Space deployment now runs only when started manually
-  (Actions -> Deploy demo to Hugging Face -> Run workflow), since hosting a
-  Gradio Space requires a Hugging Face PRO subscription.
+### Removed
+- Hugging Face Space deployment (`space/`, `.github/workflows/space.yaml`,
+  `.github/scripts/deploy_space.py`): hosting a Gradio Space requires a paid
+  Hugging Face plan. The browser GUI still runs locally with
+  `urdf-mesh-optimizer --gui`.
 
 ## [0.3.0] - 2026-11-12
 
