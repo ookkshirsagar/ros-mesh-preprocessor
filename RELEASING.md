@@ -40,11 +40,3 @@ publisher becomes a normal trusted publisher.
 
 5. Watch the **Release** workflow in the Actions tab. It fails early if the tag
    doesn't match `__version__`.
-
-## After the first release
-
-Add a PyPI badge to the README and switch the Quick start to `pip install urdf-mesh-optimizer`:
-
-```markdown
-[![PyPI](https://img.shields.io/pypi/v/urdf-mesh-optimizer.svg)](https://pypi.org/project/urdf-mesh-optimizer/)
-```

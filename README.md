@@ -4,6 +4,7 @@
 
 **Turn heavy CAD exports into real-time-ready visual and collision meshes for ROS 2, MoveIt and Gazebo.**
 
+[![PyPI](https://img.shields.io/pypi/v/urdf-mesh-optimizer.svg)](https://pypi.org/project/urdf-mesh-optimizer/)
 [![CI](https://github.com/ookkshirsagar/urdf-mesh-optimizer/actions/workflows/ci.yml/badge.svg)](https://github.com/ookkshirsagar/urdf-mesh-optimizer/actions/workflows/ci.yml)
 [![Python 3.10 to 3.12](https://img.shields.io/badge/python-3.10%20to%203.12-blue.svg)](pyproject.toml)
 [![ROS 2](https://img.shields.io/badge/ROS%202-URDF%20assets-22314E?logo=ros)](https://docs.ros.org/)
@@ -29,10 +30,10 @@ A 200,000-triangle CAD export dropped straight into MoveIt or Gazebo slows plann
 ## Quick start
 
 ```bash
-git clone https://github.com/ookkshirsagar/urdf-mesh-optimizer.git
-cd urdf-mesh-optimizer
-pip install -e .
+pipx install urdf-mesh-optimizer      # or: pip install urdf-mesh-optimizer (inside a virtual environment)
 ```
+
+New to `pipx`? On Ubuntu: `sudo apt install pipx && pipx ensurepath`. It installs command-line tools in their own environment, which avoids Ubuntu's "externally-managed-environment" error from plain `pip install`.
 
 ```bash
 # A whole robot: every collision mesh in the URDF, URDF rewritten to match
@@ -42,7 +43,7 @@ urdf-mesh-optimizer --urdf my_robot.urdf --output ./optimized --collision 2000
 urdf-mesh-optimizer --input part.stl --output part_small.stl --triangles 5000
 ```
 
-Requires Python 3.10 to 3.12. Open3D has no Python 3.13 wheels yet; use a 3.12 virtual environment or the [Docker image](#docker).
+Requires Python 3.10 to 3.12. Open3D has no Python 3.13 wheels yet; if your default Python is newer, run `pipx install --python python3.12 urdf-mesh-optimizer`, or use the [Docker image](#docker).
 
 On minimal Linux systems (servers, WSL, containers), an `ImportError` such as `libEGL.so.1: cannot open shared object file` means Open3D's system libraries are missing:
 
@@ -249,6 +250,7 @@ They're excellent for one-off manual cleanup. This tool is for the repeatable ca
 Pull requests are welcome; for larger changes, please open an issue first. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ```bash
+git clone https://github.com/ookkshirsagar/urdf-mesh-optimizer.git && cd urdf-mesh-optimizer
 pip install -e ".[dev]"
 pre-commit install
 pytest tests/
