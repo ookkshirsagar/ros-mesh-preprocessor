@@ -1,0 +1,6 @@
+libegl1
+libgl1
+libx11-6
+libudev1
+libusb-1.0-0
+libgomp1

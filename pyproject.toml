@@ -47,6 +47,9 @@ dev = [
     "pre-commit>=3.6.0",
     "build>=1.0.0",
 ]
+gui = [
+    "gradio>=5.0",
+]
 viz = [
     # Only needed to regenerate the README figures (docs/generate_figures.py).
     "matplotlib>=3.8.0",

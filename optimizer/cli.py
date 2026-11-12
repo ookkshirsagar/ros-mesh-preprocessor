@@ -12,6 +12,9 @@ URDF pair (visual + collision):
 Batch (folder):
     urdf-mesh-optimizer --folder ./cell_assets --output ./output --collision 5000
 
+Browser GUI (needs: pip install "urdf-mesh-optimizer[gui]"):
+    urdf-mesh-optimizer --gui
+
 Whole robot (every mesh in a URDF, URIs rewritten):
     urdf-mesh-optimizer --urdf my_robot.urdf --output ./optimized --collision 3000
 
@@ -265,6 +268,11 @@ Examples:
         help="Robot URDF: optimize every mesh it references and write a rewritten copy "
         "(robot mode). Requires --output DIR and --collision N; --visual N is optional.",
     )
+    input_group.add_argument(
+        "--gui",
+        action="store_true",
+        help='Open the browser GUI instead (needs: pip install "urdf-mesh-optimizer[gui]").',
+    )
 
     # --- Output ---
     p.add_argument(
@@ -324,6 +332,11 @@ Examples:
         "package://my_robot_description/meshes_optimized (default: relative paths).",
     )
 
+    # --- GUI ---
+    p.add_argument(
+        "--port", type=int, default=7860, metavar="N", help="Port for --gui (default 7860)."
+    )
+
     # --- Extras ---
     p.add_argument(
         "--save-report",
@@ -371,6 +384,17 @@ def main() -> None:
 
     try:
         # ---- Routing ----
+        if args.gui:
+            try:
+                from optimizer.gui import launch
+            except ImportError as exc:  # pragma: no cover
+                raise CliError(f"GUI unavailable: {exc}") from exc
+            try:
+                launch(port=args.port)
+            except RuntimeError as exc:
+                raise CliError(str(exc)) from exc
+            return
+
         if args.folder:
             if args.triangles is None and args.reduction is None and args.collision is None:
                 parser.error("Batch mode requires --triangles, --reduction, or --collision.")

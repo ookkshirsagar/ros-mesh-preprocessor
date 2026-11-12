@@ -22,6 +22,7 @@ A 200,000-triangle CAD export dropped straight into MoveIt or Gazebo slows plann
 - **Measured, not eyeballed.** Every output comes with a Hausdorff deviation report.
 - **Ready for CI.** A MoveIt load check fails the build when a mesh is missing, empty or over budget.
 - **No ROS install needed.** Outputs drop straight into any `*_description` package.
+- **Browser app included.** Compare before and after in 3D, no command line needed.
 
 <p align="center">
   <img src="docs/img/pipeline.svg" alt="Pipeline: raw mesh, clean, QEM decimation, visual and collision meshes, URDF, MoveIt load check, with metrics report" width="100%">
@@ -50,6 +51,21 @@ On minimal Linux systems (servers, WSL, containers), an `ImportError` such as `l
 ```bash
 sudo apt install libegl1 libgl1 libx11-6 libudev1 libusb-1.0-0 libgomp1
 ```
+
+## Browser app
+
+Prefer clicking to typing? The same tool runs as a local web app:
+
+```bash
+pipx install "urdf-mesh-optimizer[gui]"
+urdf-mesh-optimizer --gui        # opens http://127.0.0.1:7860
+```
+
+Upload a mesh, pick a triangle budget and compare the original with the optimized mesh in 3D, or upload a zipped robot description package and download the optimized robot.
+
+<p align="center">
+  <img src="docs/img/gui.png" alt="Browser app: a spur gear before and after optimization in side-by-side 3D viewers, with triangle count, file size and deviation" width="100%">
+</p>
 
 ## Results on industrial parts
 
@@ -272,7 +288,7 @@ optimizer/            the package
 examples/             end-to-end MoveIt demo
 benchmarks/           benchmark script and results
 docs/                 figure generator, part models, images
-tests/                72 tests
+tests/                84 tests
 .github/              CI, release workflow, issue templates, Dependabot
 ```
 

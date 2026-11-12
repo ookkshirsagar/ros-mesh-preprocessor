@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-12
+
+### Added
+- Browser GUI (`urdf-mesh-optimizer --gui`, optional `gui` extra) built with
+  Gradio: a single-mesh tab with side-by-side 3D before/after previews,
+  triangle budget, output format, deviation metrics and download; and a
+  whole-robot tab that takes a zipped description package and returns the
+  optimized URDF and meshes. Zip uploads are checked for unsafe paths and
+  size. Example meshes and a demo robot package in `examples/gui/`
+  (regenerate with `examples/gui/make_examples.py`).
+- Hugging Face Space deployment (`space/`, `.github/workflows/space.yaml`):
+  publishes the GUI as a public demo on every change to `main` once the
+  `HF_TOKEN` secret and `HF_SPACE` variable are set.
+
 ## [0.2.0] - 2026-11-12
 
 ### Added
@@ -94,5 +108,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Hausdorff-distance validation, batch folder processing, and JSON benchmark
   reports.
 
-[Unreleased]: https://github.com/ookkshirsagar/urdf-mesh-optimizer/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/ookkshirsagar/urdf-mesh-optimizer/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/ookkshirsagar/urdf-mesh-optimizer/releases/tag/v0.3.0
 [0.2.0]: https://github.com/ookkshirsagar/urdf-mesh-optimizer/releases/tag/v0.2.0
