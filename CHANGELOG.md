@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- The Hugging Face Space deployment now runs only when started manually
+  (Actions -> Deploy demo to Hugging Face -> Run workflow), since hosting a
+  Gradio Space requires a Hugging Face PRO subscription.
+
 ## [0.3.0] - 2026-11-12
 
 ### Added

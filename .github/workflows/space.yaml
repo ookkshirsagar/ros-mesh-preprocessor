@@ -1,14 +1,13 @@
 name: Deploy demo to Hugging Face
 
-# Publishes the browser GUI to a Hugging Face Space whenever it changes on main.
+# Publishes the browser GUI to a Hugging Face Space. Run it manually from the
+# Actions tab (Deploy demo to Hugging Face -> Run workflow).
+# Hosting a Gradio Space requires a Hugging Face PRO subscription.
 # One-time setup (repo Settings -> Secrets and variables -> Actions):
 #   secret   HF_TOKEN  a Hugging Face access token with write permission
 #   variable HF_SPACE  e.g. your-hf-username/urdf-mesh-optimizer
 
 on:
-  push:
-    branches: [main]
-    paths: ["optimizer/**", "examples/gui/**", "space/**", ".github/scripts/deploy_space.py"]
   workflow_dispatch:
 
 jobs:
