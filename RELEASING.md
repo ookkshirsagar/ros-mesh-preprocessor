@@ -29,7 +29,8 @@ publisher becomes a normal trusted publisher.
 2. Set the version in `optimizer/__init__.py` (`__version__ = "X.Y.Z"`).
 3. In `CHANGELOG.md`, move the `[Unreleased]` entries under `## [X.Y.Z] - YYYY-MM-DD`
    and update the compare links at the bottom.
-4. Commit, then tag and push:
+4. Commit and push to `main`, then either click **Actions → Release → Run workflow**
+   on `main` (the workflow creates the `vX.Y.Z` tag itself), or tag and push:
 
    ```bash
    git commit -am "release: vX.Y.Z"
